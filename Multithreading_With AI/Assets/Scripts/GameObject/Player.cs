@@ -6,11 +6,16 @@ public class Player : MonoBehaviour
 {
     private Vector3 _velocity;
     private CharacterController _controller;
-    [SerializeField]
     private float _speed = 1.2f;
     private float _gravity = -9.81f;
 
     // Start is called before the first frame update
+
+    public void SetSpeed(float speed)
+    {
+        _speed = speed;
+    }
+
     void Start()
     {
         _controller = GetComponent<CharacterController>();

@@ -93,7 +93,7 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 0.5, y: 0.5, z: 0.5}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &-7125857475665762635
 MonoBehaviour:
@@ -107,7 +107,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d6e15c5f75026543a58deb0531485ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _speed: 1
+  _speed: 3
+  signObj: {fileID: 3245248257246235678, guid: e842a3479d81ca64984b171158cca76c, type: 3}
+  lineColor: {fileID: 2100000, guid: fc525f4c984fdd349a85a1e2b7159aa2, type: 2}
 --- !u!54 &-5577409764676183005
 Rigidbody:
   m_ObjectHideFlags: 0
