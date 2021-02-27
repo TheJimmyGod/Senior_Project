@@ -14,3 +14,16 @@ public enum AStarHeuristics
     Euclidean,
     Manhattan
 }
+
+public enum ThreadingType
+{
+    Thread,
+    Task
+}
+
+public enum TileType
+{
+    Walkable,
+    UnWalkable,
+    Bush
+}

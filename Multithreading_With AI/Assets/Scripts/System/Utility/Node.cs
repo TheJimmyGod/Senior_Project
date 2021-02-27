@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class Node
 {
-    public bool walkable;
+    // TODO: Change boolean walkable to enum walkable to organize each tile: Walkable unwalkable Bush
+    public TileType walkable;
+    //public bool walkable;
     public Vector3 position;
     public int gridX;
     public int gridY;
@@ -19,7 +21,9 @@ public class Node
         get { return g + h; }
     }
 
-    public Node(bool _walkable, Vector3 _pos, int _gridX, int _gridY, int _index)
+    public int cost;
+
+    public Node(TileType _walkable, Vector3 _pos, int _gridX, int _gridY, int _index)
     {
         walkable = _walkable;
         position = _pos;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -17,13 +18,14 @@ public class AI : MonoBehaviour
             _instance = this;
     }
 
-    public List<Node> closedList = new List<Node>();
-    public List<Vector3> environment;
+    //public List<Node> closedList = new List<Node>();
+    public List<EnvironmentID> environment = new List<EnvironmentID>();
     public GameObject enemy;
     public GameObject player;
 
     public DFS dfs;
     public AStar aStar;
+    //public FlowField fField;
 
     //public bool displayClosedList = false;
     public bool displayGridList = false;
@@ -80,11 +82,10 @@ public class AI : MonoBehaviour
     {
         dfs = GetComponent<DFS>();
         aStar = GetComponent<AStar>();
-        environment = new List<Vector3>();
         GameObject[] envs = GameObject.FindGameObjectsWithTag("Environment");
         foreach(var E in envs)
         {
-            environment.Add(E.transform.position);
+            environment.Add(E.GetComponent<EnvironmentID>());
         }
 
         Grid.Instance.CreateGrid();
@@ -96,6 +97,11 @@ public class AI : MonoBehaviour
                 1.0f, _setting.Start.z + randomPosition), Quaternion.identity);
             e.gameObject.name = "Enemy" + i;
         }
+
+        GameObject e2 = GameObject.Instantiate(enemy, new Vector3(_setting.Start.x + 13.0f,
+     1.0f, _setting.Start.z + 0.5f), Quaternion.identity);
+
+        e2.GetComponent<Enemy>().type = ThreadingType.Task;
 
         GameObject.Instantiate(player, new Vector3(_setting.End.x + 0.1f,
     1.0f, _setting.End.z + 0.1f), Quaternion.identity);
@@ -129,14 +135,6 @@ public class AI : MonoBehaviour
         aStar.Search(request, result);
     }
 
-    // ------------------------------
-
-    // void ExecuteStateMachine()
-
-    // ------------------------------
-
-    // void ExecuteSteeringMachine()
-
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.magenta;
@@ -144,23 +142,6 @@ public class AI : MonoBehaviour
 
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(_setting.End, 0.25f);
-
-        //if(displayClosedList)
-        //{
-        //    foreach (var n in closedList)
-        //    {
-        //        float offsetX = Grid.Instance.WorldSizeX * 0.5f;
-        //        float offsetY = Grid.Instance.WorldSizeY * 0.5f;
-        //        if (n.gridX != -1 && n.gridY != -1)
-        //        {
-        //            Gizmos.color = Color.blue;
-        //            Gizmos.DrawLine(new Vector3(n.gridX * 0.5f - offsetX, 0.1f, n.gridY * 0.5f - offsetY),
-        //                new Vector3(n.parent.gridX * 0.5f - offsetX, 0.1f, n.parent.gridY * 0.5f - offsetY));
-
-        //        }
-
-        //    }
-        //}
     }
 
 

@@ -4,30 +4,39 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    public string currentState = string.Empty;
+
     [SerializeField]
-    private float _speed = 10.0f;
+    public float _speed = 10.0f;
 
-    private int _previousIndex = 0;
+    public int _previousIndex = 0;
+    public int MaximumPath = 0;
 
-    private Rigidbody _rigidbody;
-    private bool _isStart = false;
-
-    private Vector3 _start = new Vector3();
-    private Vector3 _end = new Vector3();
+    public Rigidbody _rigidbody;
+    public bool _isStart = false;
+    public bool _isFound = false;
+    public bool _isSearching = false;
 
     public Vector3[] path;
+    public Vector3 current;
+    public Vector3 _start = new Vector3();
+    public Vector3 _end = new Vector3();
+
     public List<GameObject> lines;
     public GameObject signObj;
 
     public Material lineColor;
 
-    private Vector3 current;
-    private int MaximumPath = 0;
+    public StateMachineModule stateMachine;
+
+    public GameObject[] sightLines;
+
+    public ThreadingType type = ThreadingType.Thread;
 
     void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
-
+        sightLines = new GameObject[2];
         GameObject[] agent = GameObject.FindGameObjectsWithTag("Enemy");
 
         if(agent.Length > 1)
@@ -40,6 +49,14 @@ public class Enemy : MonoBehaviour
 
         _previousIndex = 0;
         GetOrderFromAI();
+
+        stateMachine = new StateMachineModule();
+        stateMachine.agent = this.gameObject;
+        stateMachine.AddState<Idle>(new Idle(), "Idle");
+        stateMachine.AddState<Move>(new Move(),"Move");
+        stateMachine.AddState<Find>(new Find(), "Find");
+        stateMachine.ChangeState("Idle");
+
     }
 
     public void PathFound(Vector3[] _pathes, bool _pathFound)
@@ -73,56 +90,37 @@ public class Enemy : MonoBehaviour
     {
         if (AI.Instance == null)
             return;
+        stateMachine.ActivateState();
 
-        if(!_isStart)
-        {
-            Debug.Log("Act");
-            _isStart = true;
-            GetOrderFromAI();
-            PathThreadManager.RequestPathInfo(new PathReqeustInfo(transform.position, _end, PathFound));
-        }
-
-        if (path == null)
-            return;
-        if (path.Length < 1)
-            return;
-
-
-        current = path[_previousIndex];
-
-        if(_isStart)
-        {
-            if (Vector3.Distance(transform.position, current) > 0.75f)
-            {
-                Vector3 direction = Vector3.Normalize(current - transform.position);
-                Vector3 newPos = transform.position + (direction * _speed * Time.deltaTime);
-                transform.position = new Vector3(newPos.x,0.0f,newPos.z);
-            }
-            else
-            {
-                _rigidbody.velocity = Vector3.zero;
-                if (_previousIndex == MaximumPath)
-                {
-                    foreach (var L in lines)
-                        Destroy(L.gameObject);
-                    _isStart = false;
-                    lines.Clear();
-                    _previousIndex = 0;
-                }
-                else
-                {
-                    _previousIndex++;
-                }
-                
-            }
-        }
-
+        currentState = stateMachine.GetCurrentState();
     }
 
     public void GetOrderFromAI()
     {
-        _start = AI.Instance.Setting.Start;
+        _start = transform.position;
         _end = AI.Instance.Setting.End;
+    }
+
+    public void FinalizePathFinding()
+    {
+        if(lines.Count > 0)
+        {
+            for (int i = 0; i < lines.Count; ++i)
+            {
+                Destroy(lines[i].gameObject);
+            }
+        }
+
+        lines.Clear();
+        _isStart = false;
+        _previousIndex = 0;
+        MaximumPath = 0;
+        path = null;
+    }
+
+    public void EnableDisplaySight()
+    {
+        this.GetComponent<VisualSensor>().EnableVisualSensor();
     }
 
     private void OnDrawGizmos()
@@ -138,5 +136,12 @@ public class Enemy : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawLine(transform.position, newDirection);
         }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (_rigidbody == null)
+            return;
+        _rigidbody.angularVelocity = new Vector3(0.0f, 0.0f, 0.0f);
     }
 }

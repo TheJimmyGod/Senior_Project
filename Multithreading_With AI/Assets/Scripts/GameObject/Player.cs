@@ -19,6 +19,18 @@ public class Player : MonoBehaviour
     void Start()
     {
         _controller = GetComponent<CharacterController>();
+        GameObject[] bushes = GameObject.FindGameObjectsWithTag("Environment");
+
+        if (bushes.Length > 1)
+        {
+            foreach (var e in bushes)
+            {
+                if (e.gameObject.GetComponent<EnvironmentID>().TypeName.Equals("Bush"))
+                    Physics.IgnoreCollision(this.GetComponent<Collider>(), e.GetComponent<Collider>());
+                else
+                    continue;
+            }
+        }
     }
 
     // Update is called once per frame

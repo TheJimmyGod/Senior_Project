@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
-public class PathThreadManager : MonoBehaviour
+public class PathTaskManager : MonoBehaviour
 {
-    private static PathThreadManager _instance;
-    public static PathThreadManager Instance {get{return _instance;}}
-    
+    private static PathTaskManager _instance;
+    public static PathTaskManager Instance { get { return _instance; } }
+
     private void Awake()
     {
         if (_instance != null && _instance != this)
@@ -19,27 +18,21 @@ public class PathThreadManager : MonoBehaviour
             _instance = this;
     }
 
-    private Queue<PathResultInfo> QueueLock;
-    private PathThread[] _threads;
-    
-    [Range(1,100)]
-    public int sleepTime = 10;
+    private Queue<object> QueueLock;
+    private PathTask[] _tasks;
 
     private void Start()
     {
-        QueueLock = new Queue<PathResultInfo>();
-        _threads = new PathThread[AI.Instance.ThreadVaild];
+        QueueLock = new Queue<object>();
+        _tasks = new PathTask[AI.Instance.ThreadVaild];
     }
 
     private void Update()
     {
-
         if (QueueLock.Count == 0)
-            Thread.Sleep(sleepTime);
-        else if (QueueLock.Count > 0)
+            return;
+        else
         {
-            // Monitor is no different from lock but the monitor class provides more control 
-            // over the synchronization of various threads trying to access the same lock of code.
             bool isEntered = false;
             try
             {
@@ -48,17 +41,20 @@ public class PathThreadManager : MonoBehaviour
                 int count = QueueLock.Count;
                 for (int i = 0; i < count; ++i)
                 {
-                    var resultQueue = QueueLock.Dequeue();
-                    resultQueue.callback(resultQueue.waypoints, resultQueue.IsSuccess);
+                    if(QueueLock.Peek() is PathResultInfo)
+                    {
+                        PathResultInfo result = (PathResultInfo)QueueLock.Dequeue();
+                        result.callback(result.waypoints, result.IsSuccess);
+                    }
                 }
             }
-            catch (SynchronizationLockException ex)
+            catch(SynchronizationLockException ex)
             {
                 Debug.Log("<color=Red>Synchronization Error</color>:" + " " + ex.Message);
             }
             finally
             {
-                Debug.Log("<color=green>Thread has been create for request... </color>");
+                Debug.Log("<color=green>Task has been create for request... </color>");
                 System.Threading.Monitor.Exit(QueueLock);
             }
         }
@@ -73,7 +69,7 @@ public class PathThreadManager : MonoBehaviour
             System.Threading.Monitor.Enter(QueueLock, ref isEntered);
             QueueLock.Enqueue(result);
         }
-        catch(SynchronizationLockException ex)
+        catch (SynchronizationLockException ex)
         {
             Debug.Log("<color=Red>Synchronization Error</color>:" + " " + ex.Message);
         }
@@ -84,21 +80,27 @@ public class PathThreadManager : MonoBehaviour
         }
     }
 
-    public static void RequestPathInfo(PathReqeustInfo path)
+    // TODO: Create New finalizedProcessingEnqueue
+
+    public static void RequestInfo(object info)
     {
-        for (int counter = 0; counter < Instance._threads.Length; ++counter)
+        for (int counter = 0; counter < Instance._tasks.Length; ++counter)
         {
-            if(Instance._threads[counter] == null)
+            if (Instance._tasks[counter] == null)
             {
-                Instance._threads[counter] = new PathThread(path, counter);
-                Instance._threads[counter].CreateThread();
+                if(info is PathReqeustInfo)
+                    Instance._tasks[counter] = new PathTask(info, counter);
+                Instance._tasks[counter].CreateTask();
             }
             else
             {
-                Instance._threads[counter].ResetThread(path,counter);
-                Instance._threads[counter].CreateThread();
+                if (info is PathReqeustInfo)
+                    Instance._tasks[counter].ResetTask(info, counter);
+                Instance._tasks[counter].CreateTask();
             }
         }
-        Debug.Log("<color=green>Thread has been create for request... </color>");
+        Debug.Log("<color=green>Task has been create for request... </color>");
+
+
     }
 }

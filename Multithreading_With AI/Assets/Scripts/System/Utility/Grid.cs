@@ -22,7 +22,7 @@ public class Grid : MonoBehaviour
     [SerializeField]
     private float radius = 0.5f;
 
-    public List<Node> grids;
+    public Node[,] grids;
 
     private float nodeDiameter;
     public int gridSizeX, gridSizeY;
@@ -48,7 +48,7 @@ public class Grid : MonoBehaviour
     public void CreateGrid()
     {
         Debug.Log("<color=Red>Start to create grids</color>");
-        grids = new List<Node>();
+        grids = new Node[gridSizeX,gridSizeY];
         Vector3 worldBottomLeft = centerPos - 
             (Vector3.right * WorldSizeX / 2) - 
             (Vector3.forward * WorldSizeY / 2);
@@ -58,19 +58,27 @@ public class Grid : MonoBehaviour
             for (int y = 0; y < gridSizeY; ++y)
             {
                 Vector3 point = worldBottomLeft + Vector3.right * (x * nodeDiameter + radius) + Vector3.forward * (y * nodeDiameter + radius);
-                bool walkable = true;
+                TileType walkable = new TileType();
 
                 foreach(var v in AI.Instance.environment)
                 {
-                    Vector2 computeDis = new Vector2(point.x - v.x, point.z - v.z);
+                    Vector2 computeDis = new Vector2(point.x - v.position.x, point.z - v.position.z);
                     float distance = ((computeDis.x * computeDis.x) +
                         (computeDis.y * computeDis.y)); // Mgnitude V.x * v.x + v.y * v.y
                     distance = Mathf.Sqrt(distance); // Sqrf(Mgnitude)
-                    walkable = (distance > 0.75f) ? true : false;
-                    if (!walkable) break;
+                    if (v.TypeName == "Wall")
+                    {
+                        walkable = (distance > 0.75f) ? TileType.Walkable : TileType.UnWalkable;
+                        if (walkable == TileType.UnWalkable) break;
+                    }
+                    else if (v.TypeName == "Bush")
+                    {
+                        walkable = (distance > 0.75f) ? TileType.Walkable : TileType.Bush;
+                        if (walkable == TileType.Bush) break;
+                    }
                 }
 
-                grids.Add(new Node(walkable, point, x,y,index));
+                grids[x,y] = new Node(walkable, point, x,y,index);
                 index++;
             }
         }
@@ -79,7 +87,7 @@ public class Grid : MonoBehaviour
     public List<Node> GetNeighbours(Node node)
     {
         List<Node> neighbours = new List<Node>();
-
+        
         for (int x = -1; x <= 1; ++x)
         {
             for (int y = -1; y <= 1; ++y)
@@ -91,7 +99,7 @@ public class Grid : MonoBehaviour
 
                 if (checkX >= 0 && checkY < gridSizeX
                     && checkY >= 0 && checkY < gridSizeY)
-                    neighbours.Add(grids.Find(i=> i.gridX == checkX && i.gridY == checkY));
+                    neighbours.Add(grids[checkX,checkY]);
             }
 
         }
@@ -107,7 +115,7 @@ public class Grid : MonoBehaviour
 
         int x = Mathf.RoundToInt((gridSizeX -1) * percentX);
         int y = Mathf.RoundToInt((gridSizeY -1) * percentY);
-        return grids.Find(i=>i.gridX == x && i.gridY == y); 
+        return grids[x,y]; 
     }
 
     private void OnDrawGizmos()
@@ -122,8 +130,22 @@ public class Grid : MonoBehaviour
         {
             foreach(var node in grids)
             {
-                Gizmos.color = (node.walkable) ? Color.blue : Color.red;
-                if(node.walkable == false)
+                switch(node.walkable)
+                {
+                    case TileType.Walkable:
+                        Gizmos.color = Color.blue;
+                        break;
+                    case TileType.UnWalkable:
+                        Gizmos.color = Color.red;
+                        break;
+                    case TileType.Bush:
+                        Gizmos.color = Color.green;
+                        break;
+                    default:
+                        Gizmos.color = Color.grey;
+                        break;
+                }
+                if(node.walkable == TileType.UnWalkable)
                 {
                     Gizmos.DrawWireCube(new Vector3(node.position.x,0.5f,node.position.z), Vector3.one * (nodeDiameter - 0.1f));
                 }
