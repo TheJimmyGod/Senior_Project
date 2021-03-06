@@ -36,7 +36,7 @@ public class AI : MonoBehaviour
     [SerializeField]
     private AStarHeuristics _AStarHeuristics = AStarHeuristics.Manhattan;
 
-    [Range(1,2)]
+    [Range(1,4)]
     public int EnemyCountForSpawning = 1;
 
     [Range(1, 4)]
@@ -63,7 +63,8 @@ public class AI : MonoBehaviour
     private bool isGridSet;
     public bool gridSet
     {
-        set { Debug.Log("<color=green>Grid has been created</color>"); isGridSet = value; }
+        set { //Debug.Log("<color=green>Grid has been created</color>"); 
+            isGridSet = value; }
         get { return isGridSet; }
     }
 
@@ -160,13 +161,13 @@ public class AI : MonoBehaviour
 
     public void ExecutePathFindingDFS(PathReqeustInfo request, Action<PathResultInfo> result)
     {
-        Debug.Log("<color=blue>DFS executed</color>");
+        //Debug.Log("<color=blue>DFS executed</color>");
         dfs.Search(request, result);
     }
 
     public void ExecutePathFindingAStar(PathReqeustInfo request, Action<PathResultInfo> result)
     {
-        Debug.Log("<color=blue>A* executed</color>");
+        //Debug.Log("<color=blue>A* executed</color>");
         aStar.Search(request, result);
     }
 

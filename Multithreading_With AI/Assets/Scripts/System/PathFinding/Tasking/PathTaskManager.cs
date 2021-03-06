@@ -84,21 +84,23 @@ public class PathTaskManager : MonoBehaviour
 
     public static void RequestInfo(object info) // 동기 방식
     {
-        for (int counter = 0; counter < Instance._tasks.Length; ++counter)
+        if (info is PathReqeustInfo)
         {
-            if (Instance._tasks[counter] == null)
+            for (int counter = 0; counter < Instance._tasks.Length; ++counter)
             {
-                if (info is PathReqeustInfo)
+                if (Instance._tasks[counter] == null)
+                {
                     Instance._tasks[counter] = new PathTask(info, counter);
-                Instance._tasks[counter].CreateTask();
-            }
-            else
-            {
-                if (info is PathReqeustInfo)
-                    Instance._tasks[counter].ResetTask(info, counter);
-                Instance._tasks[counter].CreateTask();
+                    Instance._tasks[counter].CreateTask();
+                }
+                else
+                {
+                    Instance._tasks[counter].ResetTask(info);
+                    Instance._tasks[counter].RunTask();
+                }
             }
         }
+
         //Debug.Log("<color=green>Task has been create for request... </color>");
     }
 }

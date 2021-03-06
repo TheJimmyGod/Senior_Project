@@ -63,7 +63,8 @@ public class Enemy : MonoBehaviour
         _previousIndex = 0;
         GetOrderFromAI();
 
-        stateMachine = new StateMachineModule();
+        stateMachine = gameObject.AddComponent<StateMachineModule>();
+
         stateMachine.agent = this.gameObject;
         stateMachine.AddState<Idle>(new Idle(), "Idle");
         stateMachine.AddState<Move>(new Move(),"Move");

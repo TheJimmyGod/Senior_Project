@@ -49,7 +49,7 @@ public class Grid : MonoBehaviour
 
     public void CreateGrid()
     {
-        Debug.Log("<color=Red>Start to create grids</color>");
+        //Debug.Log("<color=Red>Start to create grids</color>");
         grids = new Node[gridSizeX,gridSizeY];
         Vector3 worldBottomLeft = centerPos - 
             (Vector3.right * WorldSizeX / 2) - 

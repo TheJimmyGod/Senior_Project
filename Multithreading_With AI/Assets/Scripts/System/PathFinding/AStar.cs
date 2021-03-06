@@ -19,9 +19,9 @@ public class AStar : MonoBehaviour, PathFindInterface
 
         Vector3[] waypoints = new Vector3[0];
 
-        if (StartNode.walkable == TileType.UnWalkable || EndNode.walkable == TileType.UnWalkable)
+        if (EndNode.walkable == TileType.UnWalkable)
         {
-            Debug.Log("<color=red>Warning!</color>" + " " + "Start path or EndNode is unwalkable!");
+            Debug.Log("<color=red>Warning!</color>" + " " + "EndNode is unwalkable!");
             return;
         }
 

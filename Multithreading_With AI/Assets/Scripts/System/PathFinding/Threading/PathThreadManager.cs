@@ -101,7 +101,7 @@ public class PathThreadManager : MonoBehaviour
                 }
                 else
                 {
-                    Instance._threads[counter].ResetThread(info, counter);
+                    Instance._threads[counter].ResetThread(info);
                     Instance._threads[counter].RunThread();
                 }
             }

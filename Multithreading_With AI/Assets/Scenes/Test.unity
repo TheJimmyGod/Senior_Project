@@ -1358,6 +1358,7 @@ MonoBehaviour:
   position: {fileID: 1717869232}
   position2: {fileID: 644505895}
   _limitRound: 3
+  Active: 1
 --- !u!4 &366827727
 Transform:
   m_ObjectHideFlags: 0

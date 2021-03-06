@@ -57,6 +57,8 @@ public class UI : MonoBehaviour
     private Dictionary<int, UI_Element?> _sortedList;
     [Range(3,5)]
     public int _limitRound = 3;
+    [SerializeField]
+    private bool Active = false;
     private int _round = 0;
     private uint _units = 0;
     private volatile bool _isRun = false;
@@ -66,6 +68,10 @@ public class UI : MonoBehaviour
 
     private void Start()
     {
+        if (AI.Instance.EnemyCountForSpawning >= 3)
+            Active = false;
+        if (Active == false)
+            return;
         _queueLock = new Queue<UI_Info>(_limitRound);
         _units = (uint)AI.Instance.EnemyCountForSpawning * 2;
         _sortedList = new Dictionary<int, UI_Element?>((int)_units);
@@ -113,6 +119,8 @@ public class UI : MonoBehaviour
 
     private void Update()
     {
+        if (Active == false)
+            return;
         if (_isRun == false)
             return;
         if(_isWait == true)
@@ -126,21 +134,21 @@ public class UI : MonoBehaviour
                     if (!_sortedList.ContainsKey((int)result.id))
                     {
                         if (result.type == ThreadingType.Task)
-                            _sortedList.Add((int)result.id, new UI_Element(result.time, "Task", 1));
+                            _sortedList.Add((int)result.id, new UI_Element(Mathf.Abs(result.time), "Task", 1));
                         else
-                            _sortedList.Add((int)result.id, new UI_Element(result.time, "Thread", 1));
+                            _sortedList.Add((int)result.id, new UI_Element(Mathf.Abs(result.time), "Thread", 1));
 
-                        Debug.Log("Add in enqueue: " + result.id);
+                        //Debug.Log("Add in enqueue: " + result.id);
                     }
                     else
                     {
                         int count = _sortedList[(int)result.id].Value.count + 1;
                         if (result.type == ThreadingType.Task)
-                            _sortedList[(int)result.id] = new UI_Element((_sortedList[(int)result.id].Value.averageTime + result.time), "Task", count);
+                            _sortedList[(int)result.id] = new UI_Element(Mathf.Abs((_sortedList[(int)result.id].Value.averageTime) + Mathf.Abs(result.time)), "Task", count);
                         else
-                            _sortedList[(int)result.id] = new UI_Element((_sortedList[(int)result.id].Value.averageTime + result.time), "Thread", count);
+                            _sortedList[(int)result.id] = new UI_Element(Mathf.Abs((_sortedList[(int)result.id].Value.averageTime) + Mathf.Abs(result.time)), "Thread", count);
 
-                        Debug.Log("Revise in enqueue: " + result.id);
+                        //Debug.Log("Revise in enqueue: " + result.id);
                     }
                 }
             }
@@ -161,6 +169,8 @@ public class UI : MonoBehaviour
 
     public void InitializeText()
     {
+        if (Active == false)
+            return;
         for (int i = 0; i < _units; i++)
         {
             images[i].transform.Find("Idle").gameObject.SetActive(true);
@@ -176,6 +186,8 @@ public class UI : MonoBehaviour
 
     public void UpdateStatus()
     {
+        if (Active == false)
+            return;
         for (int i = 0; i < AI.Instance.enemies.Count; ++i)
         {
             switch (AI.Instance.enemies[i].currentState)
@@ -214,6 +226,8 @@ public class UI : MonoBehaviour
 
     public void SetText()
     {
+        if (Active == false)
+            return;
         for (int id = 0; id < _units; ++id)
         {
             if (_Texts[id] == null && _TextsForDate[id] == null && _TextsForID[id] == null && _TextsForTypeName == null)
@@ -229,6 +243,8 @@ public class UI : MonoBehaviour
 
     public void EnqueueStatusInfo(UI_Info _info)
     {
+        if (Active == false)
+            return;
         if (_roundEnded == true)
             return;
 
@@ -272,8 +288,11 @@ public class UI : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        _isRun = false;
-        _childThread.Close();
-        _thread.Abort();
+        if(Active)
+        {
+            _isRun = false;
+            _childThread.Close();
+            _thread.Abort();
+        }
     }
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-public class PathTask : MonoBehaviour
+public class PathTask
 {
     private PathReqeustInfo _info;
     private int _taskID;
@@ -20,7 +20,7 @@ public class PathTask : MonoBehaviour
 
     private Task _task;
 
-    public bool _isRun = false;
+    public volatile bool _isRun = false;
 
     public PathTask(object info, int num)
     {
@@ -29,24 +29,30 @@ public class PathTask : MonoBehaviour
             this._info = (PathReqeustInfo)info;
     }
 
-    public void ResetTask(object info, int num)
+    public void ResetTask(object info)
     {
-        _taskID = 0;
         _info.ResetContents();
-        _stopWatch = null;
+        _stopWatch.Reset();
         if(info is PathReqeustInfo)
             _info = (PathReqeustInfo)info;
-        _isRun = false;
+        //_isRun = false;
     }
 
     public void CreateTask()
     {
-        if (_isRun)
-            return;
-        _isRun = true;
-        _task = new Task(ExecuteTask,_taskID);
-        _task.RunSynchronously();
+        RunTask();
     }
+
+    public void RunTask()
+    {
+        if (!_isRun)
+        {
+            _isRun = true;
+            ExecuteTask(_taskID);
+        }
+
+    }
+
     //  Task asynchronous programming model (TAP): avoid performance bottlenecks and enhance the overall responsiveness 
     //  of your application by using asynchronous programming.
     //  - async and await
@@ -62,14 +68,15 @@ public class PathTask : MonoBehaviour
             if (AI.Instance.pathFindOptions == PathFindOptions.DFS)
             {
                 // DFS
-                AI.Instance.ExecutePathFindingDFS(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue);
+                _task = Task.Run(async () => await Task.Run(() => AI.Instance.ExecutePathFindingDFS(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue)));
 
             }
             if (AI.Instance.pathFindOptions == PathFindOptions.AStar)
             {
                 // AStar
-                AI.Instance.ExecutePathFindingAStar(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue);
+                _task = Task.Run(async () => await Task.Run(() => AI.Instance.ExecutePathFindingAStar(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue)));
             }
+            _task.Wait();
         }
         catch (Exception ex)
         {
@@ -77,9 +84,15 @@ public class PathTask : MonoBehaviour
             throw;
         }
         _stopWatch.Stop();
-//        Debug.Log("<color=red> Task# " + id + "</color>'s timer: " + " <color=green>" + _stopWatch.ElapsedMilliseconds * 0.001f + "</color>sec, FPS= " + "<color=green>" +
-//1 / Time.deltaTime + "</color>, " + "Start Position(x,y): " + " <color=green>" + Mathf.RoundToInt(_info.start.x) + ", " + Mathf.RoundToInt(_info.start.z) + "</color>");
         UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, _stopWatch.ElapsedMilliseconds * 0.001f, ThreadingType.Task));
         _stopWatch.Reset();
+
+        _isRun = false;
+    }
+
+    public void OnApplicationQuit()
+    {
+        _isRun = false;
+        _task.Dispose();
     }
 }
