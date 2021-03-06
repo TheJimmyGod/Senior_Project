@@ -33,6 +33,7 @@ public class VisualSensor : MonoBehaviour
             viewMesh.Clear();
         }
     }
+
     public bool ActivatingVisualSensor()
     {
         Collider[] collider = Physics.OverlapSphere(transform.localPosition, viewRaidus, target);

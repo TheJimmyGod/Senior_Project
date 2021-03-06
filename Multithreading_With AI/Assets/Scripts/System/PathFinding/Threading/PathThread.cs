@@ -8,7 +8,6 @@ using Debug = UnityEngine.Debug;
 
 public class PathThread : MonoBehaviour
 {
-
     private PathReqeustInfo _info;
     private int _threadID = 0;
     public int ThreadID
@@ -18,8 +17,8 @@ public class PathThread : MonoBehaviour
     private Stopwatch _stopWatch = new Stopwatch();
 
     private Thread _thread;
-
-    public bool _isRun = false;
+ 
+    public volatile bool _isRun = false;
 
     public PathThread(object info, int num)
     {
@@ -28,13 +27,14 @@ public class PathThread : MonoBehaviour
             this._info = (PathReqeustInfo)info;
     }
 
-    public void ResetThread(object info, int num)
+    public void ResetThread(object info, int num = 0)
     {
         _info.ResetContents();
         _stopWatch.Reset();
 
-        if(info is PathReqeustInfo)
+        if (info is PathReqeustInfo)
             _info = (PathReqeustInfo)info;
+ 
         _isRun = false;
     }
     
@@ -42,8 +42,6 @@ public class PathThread : MonoBehaviour
     {
         // ParameterizedThreadStart = Parameter is required
         // ThreadStart = All okay
-        //_thread = new ParameterizedThreadStart( delegate { ExecuteThread(_threadID); });
-        //_thread.Invoke((object)_threadID);
 
         _thread = new Thread(new ParameterizedThreadStart(ExecuteThread));
         RunThread();
@@ -59,7 +57,7 @@ public class PathThread : MonoBehaviour
         }
     }
 
-    public void ExecuteThread(object id)
+    public void ExecuteThread(object id = null)
     {
         if (!_isRun)
             return;
@@ -81,13 +79,11 @@ public class PathThread : MonoBehaviour
         {
             Debug.Log("Thread error: " + ex);
         }
-        finally
-        {
-            Debug.Log("<color=red> Thread# " + id + "</color>'s timer: " + " <color=green>" + _stopWatch.ElapsedMilliseconds * 0.001f + "</color>sec, " + "Start Position(x,y): " + " <color=green>" +
-    Mathf.RoundToInt(_info.start.x) + ", " + Mathf.RoundToInt(_info.start.z) + "</color>");
-        }
-        
         _stopWatch.Stop();
+//        Debug.Log("<color=red> Thread# " + id + "</color>'s timer: " + " <color=green>" + _stopWatch.ElapsedMilliseconds * 0.001f + "</color>sec, " + "Start Position(x,y): " + " <color=green>" +
+//Mathf.RoundToInt(_info.start.x) + ", " + Mathf.RoundToInt(_info.start.z) + "</color>");
+        UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, _stopWatch.ElapsedMilliseconds * 0.001f, ThreadingType.Thread));
+        _stopWatch.Reset();
         _isRun = false;
     }
 

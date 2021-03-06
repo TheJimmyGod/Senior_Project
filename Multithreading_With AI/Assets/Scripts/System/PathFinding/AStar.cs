@@ -11,7 +11,7 @@ public class AStar : MonoBehaviour, PathFindInterface
 
     public void Search(PathReqeustInfo requestInfo, Action<PathResultInfo> callback)
     {
-        Queue<Node> openList = new Queue<Node>();
+        List<Node> openList = new List<Node>();
         HashSet<Node> closedList = new HashSet<Node>();
         Node StartNode = Grid.Instance.GetNodeFromWorld(requestInfo.start);
         Node EndNode = Grid.Instance.GetNodeFromWorld(requestInfo.end);
@@ -25,12 +25,13 @@ public class AStar : MonoBehaviour, PathFindInterface
             return;
         }
 
-        openList.Enqueue(StartNode);
+        openList.Add(StartNode);
 
         bool found = false;
         while (!found && openList.Count > 0)
         {
-            Node current = openList.Dequeue();
+            Node current = openList[0];
+            openList.Remove(current);
             closedList.Add(current);
             if (current.gridX == EndNode.gridX && current.gridY == EndNode.gridY)
             {
@@ -40,25 +41,43 @@ public class AStar : MonoBehaviour, PathFindInterface
             else
             {
                 IEnumerable<Node> neighbours = Grid.Instance.GetNeighbours(current);
-                int count = neighbours.Count();
 
-                for (int i = 0; i < count; ++i)
+                IEnumerator<Node> iterator = neighbours.GetEnumerator();
+                while(iterator.MoveNext())
                 {
-                    var neighbour = neighbours.ElementAt(i);
+                    var neighbour = iterator.Current;
                     int index = neighbour.index;
 
                     float cost = current.g + ComputeCost(current, neighbour);
-                    float f = cost + ComputeHeuristic(neighbour, EndNode);
 
-                    if (neighbour.walkable != TileType.Walkable || closedList.Contains(neighbour))
+                    if (neighbour.walkable == TileType.UnWalkable || closedList.Contains(neighbour))
                         continue;
 
                     if (cost < neighbour.g || !openList.Contains(neighbour))
                     {
                         neighbour.parent = current;
                         neighbour.g = cost;
+                        neighbour.h = ComputeHeuristic(neighbour, EndNode);
 
-                        openList.Enqueue(neighbour);
+                        int E_index = 0;
+                        Node temp = null;
+                        IEnumerator<Node> NodeEnumerator = openList.GetEnumerator();
+                        if (openList.Count > 0)
+                        {
+                            while (NodeEnumerator.MoveNext())
+                            {
+                                E_index++;
+                                temp = Grid.Instance.grids[NodeEnumerator.Current.gridX, NodeEnumerator.Current.gridY];
+                                if (neighbour.f < temp.g + temp.h)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        if (!openList.Contains(temp))
+                            openList.Add(neighbour);
+                        else
+                            openList.Insert(E_index, neighbour);
                     }
                 }
             }

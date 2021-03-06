@@ -30,6 +30,8 @@ public class Grid : MonoBehaviour
     private Thread t;
     private Vector3 centerPos;
 
+    public GameObject signfier;
+
     int index = 0;
 
     private void Start()
@@ -117,6 +119,30 @@ public class Grid : MonoBehaviour
         int y = Mathf.RoundToInt((gridSizeY -1) * percentY);
         return grids[x,y]; 
     }
+
+    public List<GameObject> GenerateTile(Vector3[] _path)
+    {
+        List<GameObject> tiles = new List<GameObject>(_path.Length);
+        int odd = 0;
+        foreach(var p in _path)
+        {
+            if (odd == _path.Length - 1)
+                break;
+
+            odd++;
+            if (odd % 2 == 1)
+                continue;
+            else
+            {
+                Node node = GetNodeFromWorld(p);
+                GameObject e = GameObject.Instantiate(signfier, new Vector3(node.position.x,-0.1f, node.position.z), Quaternion.identity);
+                tiles.Add(e);
+            }
+            
+        }
+        return tiles;
+    }
+
 
     private void OnDrawGizmos()
     {

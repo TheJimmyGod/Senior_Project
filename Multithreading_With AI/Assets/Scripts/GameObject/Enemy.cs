@@ -8,6 +8,7 @@ public class Enemy : MonoBehaviour
 
     [SerializeField]
     public float _speed = 10.0f;
+    public uint id = 0;
 
     public int _previousIndex = 0;
     public int MaximumPath = 0;
@@ -23,20 +24,32 @@ public class Enemy : MonoBehaviour
     public Vector3 _end = new Vector3();
 
     public List<GameObject> lines;
-    public GameObject signObj;
+    public List<GameObject> tiles;
+
+    [SerializeField]
+    private List<GameObject> _indicatorList = new List<GameObject>();
+    private GameObject _indicator;
+    public GameObject indicator
+    {
+        set { _indicator = value; }
+        get { return _indicator; }
+    }
 
     public Material lineColor;
 
     public StateMachineModule stateMachine;
 
-    public GameObject[] sightLines;
-
     public ThreadingType type = ThreadingType.Thread;
 
     void Start()
     {
+
+        _indicatorList.ForEach(delegate (GameObject obj)
+        {
+            obj.SetActive(false);
+        });
+
         _rigidbody = GetComponent<Rigidbody>();
-        sightLines = new GameObject[2];
         GameObject[] agent = GameObject.FindGameObjectsWithTag("Enemy");
 
         if(agent.Length > 1)
@@ -66,6 +79,7 @@ public class Enemy : MonoBehaviour
             path = _pathes;
             MaximumPath = _pathes.Length - 1;
             _previousIndex = 0;
+
             for (int i = 0; i < MaximumPath; ++i)
             {
                 GameObject line = new GameObject("Line");
@@ -76,8 +90,16 @@ public class Enemy : MonoBehaviour
                 LineRenderer lr = line.GetComponent<LineRenderer>();
 
                 lr.material = lineColor;
-                lr.startColor = Color.red;
-                lr.endColor = Color.red;
+                if(type == ThreadingType.Thread)
+                {
+                    lr.startColor = Color.green;
+                    lr.endColor = Color.green;
+                }
+                else
+                {
+                    lr.startColor = Color.red;
+                    lr.endColor = Color.red;
+                }
                 lr.startWidth = 0.05f;
                 lr.endWidth = 0.05f;
                 lr.SetPosition(0, new Vector3(_pathes[i].x, 0.5f, _pathes[i].z));
@@ -91,8 +113,62 @@ public class Enemy : MonoBehaviour
         if (AI.Instance == null)
             return;
         stateMachine.ActivateState();
+        if(indicator != null)
+            indicator.transform.rotation = Quaternion.LookRotation(-Camera.main.transform.forward, Camera.main.transform.up);
 
-        currentState = stateMachine.GetCurrentState();
+    }
+
+    public void ChangeIndicator()
+    {
+        switch(stateMachine.GetCurrentState())
+        {
+            case "Idle":
+                {
+                    _indicatorList.ForEach(delegate (GameObject obj)
+                    {
+                        if(obj.name == "Sign-Idle")
+                        {
+                            obj.SetActive(true);
+                            indicator = obj;
+                        }
+                        else
+                        {
+                            obj.SetActive(false);
+                        }
+                    });
+                }
+                break;
+            case "Find":
+                _indicatorList.ForEach(delegate (GameObject obj)
+                {
+                    if (obj.name == "Sign-Find")
+                    {
+                        obj.SetActive(true);
+                        indicator = obj;
+                    }
+                    else
+                    {
+                        obj.SetActive(false);
+                    }
+                });
+                break;
+            case "Move":
+                _indicatorList.ForEach(delegate (GameObject obj)
+                {
+                    if (obj.name == "Sign-Move")
+                    {
+                        obj.SetActive(true);
+                        indicator = obj;
+                    }
+                    else
+                    {
+                        obj.SetActive(false);
+                    }
+                });
+                break;
+            default:
+                break;
+        }
     }
 
     public void GetOrderFromAI()
@@ -116,6 +192,16 @@ public class Enemy : MonoBehaviour
         _previousIndex = 0;
         MaximumPath = 0;
         path = null;
+
+        if(tiles.Count > 0)
+        {
+            for (int i = 0; i < tiles.Count; ++i)
+            {
+                Destroy(tiles[i].gameObject, 0.45f);
+            }
+        }
+        
+        tiles.Clear();
     }
 
     public void EnableDisplaySight()

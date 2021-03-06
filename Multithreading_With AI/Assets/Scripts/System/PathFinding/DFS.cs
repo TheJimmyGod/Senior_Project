@@ -30,7 +30,6 @@ public class DFS : MonoBehaviour, PathFindInterface
         while(!found && openList.Count > 0)
         {
             Node current = openList.Dequeue();
-            closedList.Add(current);
             if (current.gridX == EndNode.gridX && current.gridY == EndNode.gridY)
             {
                 found = true;
@@ -41,10 +40,14 @@ public class DFS : MonoBehaviour, PathFindInterface
                 IEnumerable<Node> neighbours = Grid.Instance.GetNeighbours(current);
                 int count = neighbours.Count();
 
-                for (int i = 0; i < count; ++i)
+                IEnumerator<Node> iterator = neighbours.GetEnumerator();
+                while(iterator.MoveNext())
                 {
-                    var neighbour = neighbours.ElementAt(i);
-                    int index = neighbour.index;
+                    var neighbour = iterator.Current;
+                    int id = neighbour.index;
+
+                    if (closedList.Contains(neighbour))
+                        continue;
 
                     if (neighbour.walkable == TileType.Walkable && !openList.Contains(neighbour))
                     {
@@ -53,7 +56,7 @@ public class DFS : MonoBehaviour, PathFindInterface
                     }
                 }
             }
-
+            closedList.Add(current);
         }
 
         Queue<Node> trace = new Queue<Node>();

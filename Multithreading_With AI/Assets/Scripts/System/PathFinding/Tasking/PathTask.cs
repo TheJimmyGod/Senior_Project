@@ -18,6 +18,8 @@ public class PathTask : MonoBehaviour
 
     private Stopwatch _stopWatch = new Stopwatch();
 
+    private Task _task;
+
     public bool _isRun = false;
 
     public PathTask(object info, int num)
@@ -42,42 +44,42 @@ public class PathTask : MonoBehaviour
         if (_isRun)
             return;
         _isRun = true;
-        ExecuteTask(_taskID);
+        _task = new Task(ExecuteTask,_taskID);
+        _task.RunSynchronously();
     }
     //  Task asynchronous programming model (TAP): avoid performance bottlenecks and enhance the overall responsiveness 
     //  of your application by using asynchronous programming.
     //  - async and await
-    public async void ExecuteTask(object id)
+    // TODO: Make a function for TAP
+    public void ExecuteTask(object id)
     {
         if (!_isRun)
             return;
+
         _stopWatch.Start();
         try
         {
             if (AI.Instance.pathFindOptions == PathFindOptions.DFS)
             {
                 // DFS
-                await Task.Factory.StartNew(() => AI.Instance.ExecutePathFindingDFS(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue));
+                AI.Instance.ExecutePathFindingDFS(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue);
 
             }
             if (AI.Instance.pathFindOptions == PathFindOptions.AStar)
             {
                 // AStar
-                await Task.Factory.StartNew(() => AI.Instance.ExecutePathFindingAStar(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue));
+                AI.Instance.ExecutePathFindingAStar(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue);
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Debug.Log("Error in Task: " + ex.ToString());
             throw;
         }
-        finally
-        {
-            Debug.Log("<color=red> Task# " + id + "</color>'s timer: " + " <color=green>" + _stopWatch.ElapsedMilliseconds * 0.001f + "</color>sec, FPS= " + "<color=green>" +
-    1 / Time.deltaTime + "</color>, " + "Start Position(x,y): " + " <color=green>" + Mathf.RoundToInt(_info.start.x) + ", " + Mathf.RoundToInt(_info.start.z) + "</color>");
-        }
-
         _stopWatch.Stop();
-
+//        Debug.Log("<color=red> Task# " + id + "</color>'s timer: " + " <color=green>" + _stopWatch.ElapsedMilliseconds * 0.001f + "</color>sec, FPS= " + "<color=green>" +
+//1 / Time.deltaTime + "</color>, " + "Start Position(x,y): " + " <color=green>" + Mathf.RoundToInt(_info.start.x) + ", " + Mathf.RoundToInt(_info.start.z) + "</color>");
+        UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, _stopWatch.ElapsedMilliseconds * 0.001f, ThreadingType.Task));
+        _stopWatch.Reset();
     }
 }

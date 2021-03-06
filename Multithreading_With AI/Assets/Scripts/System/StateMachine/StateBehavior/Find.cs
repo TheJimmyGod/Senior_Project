@@ -13,7 +13,10 @@ public class Find : State
     public override void Enter(GameObject agent)
     {
         var EnemyAgent = agent.GetComponent<Enemy>();
-        Debug.Log("Name: " + agent.name + " <color=blue>has been entered state</color>: " + "Find");
+        EnemyAgent.currentState = EnemyAgent.stateMachine.GetCurrentState();
+        //Debug.Log("Name: " + agent.name + " <color=blue>has been entered state</color>: " + EnemyAgent.currentState);
+
+        EnemyAgent.ChangeIndicator();
         totalTimer = 0.0f;
         timer = 0.0f;
         EnemyAgent.transform.Rotate(new Vector3(0.0f, EnemyAgent.transform.rotation.y, 0.0f), Space.World);
@@ -74,7 +77,7 @@ public class Find : State
     public override void Exit(GameObject agent)
     {
         var EnemyAgent = agent.GetComponent<Enemy>();
-        Debug.Log("Name: " + agent.name + " <color=blue>has been leaved out state</color>: " + "Find");
+        //Debug.Log("Name: " + agent.name + " <color=blue>has been leaved out state</color>: " + "Find");
         EnemyAgent.EnableDisplaySight();
     }
 }

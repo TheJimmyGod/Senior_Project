@@ -43,7 +43,7 @@ public class PathThreadManager : MonoBehaviour
             bool isEntered = false;
             try
             {
-                Debug.Log("<color=green>Confirmed Queue has been enqueued... </color>");
+                //Debug.Log("<color=green>Confirmed Queue has been enqueued... </color>");
                 System.Threading.Monitor.Enter(QueueLock, ref isEntered);
                 int count = QueueLock.Count;
                 for (int i = 0; i < count; ++i)
@@ -61,7 +61,7 @@ public class PathThreadManager : MonoBehaviour
             }
             finally
             {
-                Debug.Log("<color=green>Thread has been called back for request... </color>");
+                //Debug.Log("<color=green>Thread has been called back for request... </color>");
                 System.Threading.Monitor.Exit(QueueLock);
             }
         }
@@ -72,7 +72,7 @@ public class PathThreadManager : MonoBehaviour
         bool isEntered = false;
         try
         {
-            Debug.Log("<color=green>Entering the process of enqueue... </color>");
+            //Debug.Log("<color=green>Entering the process of enqueue... </color>");
             System.Threading.Monitor.Enter(QueueLock, ref isEntered);
             QueueLock.Enqueue(result);
         }
@@ -82,29 +82,32 @@ public class PathThreadManager : MonoBehaviour
         }
         finally
         {
-            Debug.Log("<color=green>Exiting from the request... </color>");
+            //Debug.Log("<color=green>Exiting from the request... </color>");
             System.Threading.Monitor.Exit(QueueLock);
         }
     }
 
     public static void RequestInfo(object info)
     {
-        for (int counter = 0; counter < Instance._threads.Length; ++counter)
+        // Rendering or Physics
+        if(info is PathReqeustInfo)
         {
-            if(Instance._threads[counter] == null)
+            for (int counter = 0; counter < Instance._threads.Length; ++counter)
             {
-                if(info is PathReqeustInfo)
+                if (Instance._threads[counter] == null)
+                {
                     Instance._threads[counter] = new PathThread(info, counter);
-                Instance._threads[counter].CreateThread();
-            }
-            else
-            {
-                if(info is PathReqeustInfo)
+                    Instance._threads[counter].CreateThread();
+                }
+                else
+                {
                     Instance._threads[counter].ResetThread(info, counter);
-                Instance._threads[counter].RunThread();
+                    Instance._threads[counter].RunThread();
+                }
             }
         }
-        Debug.Log("<color=green>Thread has been create for request... </color>");
+
+        //Debug.Log("<color=green>Thread has been create for request... </color>");
     }
 }
 

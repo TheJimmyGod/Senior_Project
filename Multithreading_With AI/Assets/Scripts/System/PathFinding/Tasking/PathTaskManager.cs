@@ -36,25 +36,25 @@ public class PathTaskManager : MonoBehaviour
             bool isEntered = false;
             try
             {
-                Debug.Log("<color=green>Confirmed Queue has been enqueued... </color>");
+                //Debug.Log("<color=green>Confirmed Queue has been enqueued... </color>");
                 System.Threading.Monitor.Enter(QueueLock, ref isEntered);
                 int count = QueueLock.Count;
                 for (int i = 0; i < count; ++i)
                 {
-                    if(QueueLock.Peek() is PathResultInfo)
+                    if (QueueLock.Peek() is PathResultInfo)
                     {
                         PathResultInfo result = (PathResultInfo)QueueLock.Dequeue();
                         result.callback(result.waypoints, result.IsSuccess);
                     }
                 }
             }
-            catch(SynchronizationLockException ex)
+            catch (SynchronizationLockException ex)
             {
                 Debug.Log("<color=Red>Synchronization Error</color>:" + " " + ex.Message);
             }
             finally
             {
-                Debug.Log("<color=green>Task has been create for request... </color>");
+                //Debug.Log("<color=green>Task has been create for request... </color>");
                 System.Threading.Monitor.Exit(QueueLock);
             }
         }
@@ -65,7 +65,7 @@ public class PathTaskManager : MonoBehaviour
         bool isEntered = false;
         try
         {
-            Debug.Log("<color=green>Entering the process of enqueue... </color>");
+            //Debug.Log("<color=green>Entering the process of enqueue... </color>");
             System.Threading.Monitor.Enter(QueueLock, ref isEntered);
             QueueLock.Enqueue(result);
         }
@@ -75,20 +75,20 @@ public class PathTaskManager : MonoBehaviour
         }
         finally
         {
-            Debug.Log("<color=green>Exiting from the request... </color>");
+            //Debug.Log("<color=green>Exiting from the request... </color>");
             System.Threading.Monitor.Exit(QueueLock);
         }
     }
 
     // TODO: Create New finalizedProcessingEnqueue
 
-    public static void RequestInfo(object info)
+    public static void RequestInfo(object info) // 동기 방식
     {
         for (int counter = 0; counter < Instance._tasks.Length; ++counter)
         {
             if (Instance._tasks[counter] == null)
             {
-                if(info is PathReqeustInfo)
+                if (info is PathReqeustInfo)
                     Instance._tasks[counter] = new PathTask(info, counter);
                 Instance._tasks[counter].CreateTask();
             }
@@ -99,8 +99,6 @@ public class PathTaskManager : MonoBehaviour
                 Instance._tasks[counter].CreateTask();
             }
         }
-        Debug.Log("<color=green>Task has been create for request... </color>");
-
-
+        //Debug.Log("<color=green>Task has been create for request... </color>");
     }
 }

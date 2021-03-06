@@ -8,11 +8,14 @@ public class Idle : State
     public override void Enter(GameObject agent)
     {
         var EnemyAgent = agent.GetComponent<Enemy>();
-        Debug.Log("Name: " + agent.name + " <color=blue>has been entered state</color>: " + "Idle");
+        EnemyAgent.currentState = EnemyAgent.stateMachine.GetCurrentState();
+        //Debug.Log("Name: " + agent.name + " <color=blue>has been entered state</color>: " + EnemyAgent.currentState);
         Timer = 0.0f;
         float random = Random.Range(0.0f, 180.0f);
         EnemyAgent.gameObject.transform.rotation = Quaternion.Euler(0.0f, random, 0.0f);
         EnemyAgent._rigidbody.velocity = Vector3.zero;
+
+        EnemyAgent.ChangeIndicator();
     }
 
     public override void Execute(GameObject agent)
@@ -34,7 +37,7 @@ public class Idle : State
     public override void Exit(GameObject agent)
     {
         var EnemyAgent = agent.GetComponent<Enemy>();
-        Debug.Log("Name: " + agent.name + " <color=blue>has been leaved out state</color>: " + "Idle");
+        //Debug.Log("Name: " + agent.name + " <color=blue>has been leaved out state</color>: " + "Idle");
         EnemyAgent._isFound = false;
     }
 }

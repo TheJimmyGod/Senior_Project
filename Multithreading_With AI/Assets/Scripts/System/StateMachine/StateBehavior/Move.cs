@@ -4,17 +4,23 @@ using UnityEngine;
 
 public class Move : State
 {
+    float originalView;
     float originalAngle;
     float timer = 0.0f;
     bool found = false;
 
     public override void Enter(GameObject agent)
     {
-        Debug.Log("Name: " + agent.name + " <color=blue>has been entered state</color>: " + "Move");
         var EnemyAgent = agent.GetComponent<Enemy>();
+        EnemyAgent.currentState = EnemyAgent.stateMachine.GetCurrentState();
+        //Debug.Log("Name: " + agent.name + " <color=blue>has been entered state</color>: " + EnemyAgent.currentState);
+
+        EnemyAgent.ChangeIndicator();
         EnemyAgent.GetOrderFromAI();
         EnemyAgent._isStart = false;
+        originalView = agent.GetComponent<VisualSensor>().viewRaidus;
         originalAngle = agent.GetComponent<VisualSensor>().viewAngle;
+        agent.GetComponent<VisualSensor>().viewRaidus = originalView / 2.0f;
         agent.GetComponent<VisualSensor>().viewAngle = originalAngle / 3.0f;
         EnemyAgent.EnableDisplaySight();
     }
@@ -22,17 +28,19 @@ public class Move : State
     public override void Execute(GameObject agent)
     {
         var EnemyAgent = agent.GetComponent<Enemy>();
+        EnemyAgent.transform.Rotate(new Vector3(0.0f, EnemyAgent.transform.rotation.y, 0.0f), Space.World);
         if (EnemyAgent == null) return;
         object box;
         if (EnemyAgent._isStart == false)
         {
-            Debug.Log("Executing... ");
+            //Debug.Log("Executing... ");
             EnemyAgent._isStart = true;
+
             if(EnemyAgent._isFound)
             {
                 Node playerPos = Grid.Instance.GetNodeFromWorld(GameObject.FindGameObjectWithTag("Player").gameObject.transform.position);
                 EnemyAgent.transform.LookAt(GameObject.FindGameObjectWithTag("Player").gameObject.transform);
-                box = new PathReqeustInfo(EnemyAgent.transform.position, playerPos.position, EnemyAgent.PathFound);
+                box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, playerPos.position, EnemyAgent.PathFound);
                 if (EnemyAgent.type == ThreadingType.Thread)
                 {
                     PathThreadManager.RequestInfo(box);
@@ -45,15 +53,20 @@ public class Move : State
             else
             {
                 bool accept = false;
-                Vector3 pos = new Vector3(Random.Range(0.0f, Grid.Instance.gridSizeX), 0.0f, Random.Range(0.0f, Grid.Instance.gridSizeY));
+                Vector3 pos = new Vector3(Random.Range(-Grid.Instance.gridSizeX, Grid.Instance.gridSizeX), 0.0f, Random.Range(-Grid.Instance.gridSizeY, Grid.Instance.gridSizeY));
                 while(accept == false)
                 {
                     pos = new Vector3(Random.Range(-Grid.Instance.gridSizeX, Grid.Instance.gridSizeX), 0.0f, Random.Range(-Grid.Instance.gridSizeY, Grid.Instance.gridSizeY));
-                    if (Grid.Instance.GetNodeFromWorld(pos).walkable != TileType.UnWalkable )
+                    if (Grid.Instance.GetNodeFromWorld(pos) == Grid.Instance.GetNodeFromWorld(EnemyAgent.transform.position))
+                    {
+                        accept = false;
+                        continue;
+                    }
+                    if (Grid.Instance.GetNodeFromWorld(pos).walkable != TileType.UnWalkable)
                         accept = true;
                 }
 
-                box = new PathReqeustInfo(EnemyAgent.transform.position, pos, EnemyAgent.PathFound);
+                box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, pos, EnemyAgent.PathFound);
                 if (EnemyAgent.type == ThreadingType.Thread)
                 {
                     PathThreadManager.RequestInfo(box);
@@ -77,7 +90,7 @@ public class Move : State
             if(found == true)
             {
                 EnemyAgent.FinalizePathFinding();
-                box = new PathReqeustInfo(EnemyAgent.transform.position, GameObject.FindGameObjectWithTag("Player").gameObject.transform.position, EnemyAgent.PathFound);
+                box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, GameObject.FindGameObjectWithTag("Player").gameObject.transform.position, EnemyAgent.PathFound);
 
                 PathThreadManager.RequestInfo(box);
                 EnemyAgent._isFound = true;
@@ -90,6 +103,10 @@ public class Move : State
                 EnemyAgent.stateMachine.ChangeState("Idle");
                 return;
             }
+
+            if(EnemyAgent.tiles.Count == 0)
+                EnemyAgent.tiles = Grid.Instance.GenerateTile(EnemyAgent.path);
+
             EnemyAgent.current = EnemyAgent.path[EnemyAgent._previousIndex];
 
             if (Vector3.Distance(EnemyAgent.transform.position, EnemyAgent.current) > 0.75f)
@@ -121,9 +138,11 @@ public class Move : State
 
     public override void Exit(GameObject agent)
     {
-        Debug.Log("Name: " + agent.name + " <color=blue>has been leaved out state</color>: " + "Move");
+        //Debug.Log("Name: " + agent.name + " <color=blue>has been leaved out state</color>: " + "Move");
         var EnemyAgent = agent.GetComponent<Enemy>();
+
         EnemyAgent.FinalizePathFinding();
+        agent.GetComponent<VisualSensor>().viewRaidus = originalView;
         agent.GetComponent<VisualSensor>().viewAngle = originalAngle;
         EnemyAgent.EnableDisplaySight();
         timer = 0.0f;
