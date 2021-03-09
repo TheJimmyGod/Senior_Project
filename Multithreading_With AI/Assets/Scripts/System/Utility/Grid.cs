@@ -27,7 +27,6 @@ public class Grid : MonoBehaviour
     private float nodeDiameter;
     public int gridSizeX, gridSizeY;
 
-    private Thread t;
     private Vector3 centerPos;
 
     public GameObject signfier;

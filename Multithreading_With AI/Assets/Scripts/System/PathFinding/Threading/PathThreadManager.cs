@@ -33,7 +33,6 @@ public class PathThreadManager : MonoBehaviour
 
     private void Update()
     {
-
         if (QueueLock.Count == 0)
             Thread.Sleep(sleepTime);
         else if (QueueLock.Count > 0)

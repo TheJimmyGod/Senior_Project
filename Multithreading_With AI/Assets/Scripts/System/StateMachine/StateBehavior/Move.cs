@@ -28,6 +28,7 @@ public class Move : State
     public override void Execute(GameObject agent)
     {
         var EnemyAgent = agent.GetComponent<Enemy>();
+        var PlayerUnit = GameObject.FindGameObjectWithTag("Player").gameObject;
         EnemyAgent.transform.Rotate(new Vector3(0.0f, EnemyAgent.transform.rotation.y, 0.0f), Space.World);
         if (EnemyAgent == null) return;
         object box;
@@ -38,8 +39,8 @@ public class Move : State
 
             if(EnemyAgent._isFound)
             {
-                Node playerPos = Grid.Instance.GetNodeFromWorld(GameObject.FindGameObjectWithTag("Player").gameObject.transform.position);
-                EnemyAgent.transform.LookAt(GameObject.FindGameObjectWithTag("Player").gameObject.transform);
+                Node playerPos = Grid.Instance.GetNodeFromWorld(PlayerUnit.transform.position);
+                EnemyAgent.transform.LookAt(PlayerUnit.transform);
                 box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, playerPos.position, EnemyAgent.PathFound);
                 if (EnemyAgent.type == ThreadingType.Thread)
                 {
@@ -66,6 +67,8 @@ public class Move : State
                         accept = true;
                 }
 
+                EnemyAgent.lastDistanceRecord.Clear();
+
                 box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, pos, EnemyAgent.PathFound);
                 if (EnemyAgent.type == ThreadingType.Thread)
                 {
@@ -90,7 +93,7 @@ public class Move : State
             if(found == true)
             {
                 EnemyAgent.FinalizePathFinding();
-                box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, GameObject.FindGameObjectWithTag("Player").gameObject.transform.position, EnemyAgent.PathFound);
+                box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, PlayerUnit.transform.position, EnemyAgent.PathFound);
 
                 PathThreadManager.RequestInfo(box);
                 EnemyAgent._isFound = true;

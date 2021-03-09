@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 public class UI : MonoBehaviour
 {
@@ -152,6 +153,8 @@ public class UI : MonoBehaviour
                     }
                 }
             }
+            else
+                Thread.Sleep(PathThreadManager.Instance.sleepTime);
         }
 
         if(_round >= _limitRound)
@@ -270,7 +273,7 @@ public class UI : MonoBehaviour
                 Instance._roundEnded = true;
                 if (Instance._sortedList.Count > 0)
                 {
-                    foreach (var element in Instance._sortedList)
+                    foreach (var element in Instance._sortedList.ToList())
                     {
                         float ave = element.Value.Value.averageTime / element.Value.Value.count;
                         Instance._averages[element.Key] = ave;

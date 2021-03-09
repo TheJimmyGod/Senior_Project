@@ -45,12 +45,27 @@ public class VisualSensor : MonoBehaviour
             Vector3 direction = (targetTransform.position - transform.position).normalized;
             if (Vector3.Dot(direction, transform.forward) > Mathf.Cos(viewAngle))
             {
-                if (Grid.Instance.GetNodeFromWorld(targetTransform.position).walkable == TileType.Bush &&
-                    Grid.Instance.GetNodeFromWorld(transform.position).walkable != TileType.Bush)
-                    return false;
-
                 float distance = Vector3.Distance(transform.position, targetTransform.position);
-                return !Physics.Raycast(transform.position, direction, distance, obstacleMask);
+                if (Grid.Instance.GetNodeFromWorld(targetTransform.position).walkable == TileType.Bush)
+                {
+                    if (this.gameObject.GetComponent<Enemy>().lastDistance > 0.0f &&
+                        this.gameObject.GetComponent<Enemy>().lastDistance - distance < 2.0f)
+                    {
+                        // Continue
+                    }
+                    else
+                        return false;
+                }
+
+                bool check = !Physics.Raycast(transform.position, direction, distance, obstacleMask);
+                if(check == true)
+                {
+                    if (this.gameObject.GetComponent<Enemy>().lastDistanceRecord.Count > 2)
+                         this.gameObject.GetComponent<Enemy>().lastDistance = this.gameObject.GetComponent<Enemy>().lastDistanceRecord.Dequeue();
+                    else
+                        this.gameObject.GetComponent<Enemy>().lastDistanceRecord.Enqueue(distance);
+                }
+                return check;
             }
         }
         return false;
@@ -97,18 +112,11 @@ public class VisualSensor : MonoBehaviour
 
     RaycastInfo ViewCast(float _angle)
     {
-        Vector3 direction = DirectionFromAngle(_angle, true);
+        Vector3 direction = new Vector3(Mathf.Sin(_angle * Mathf.Deg2Rad), 0, Mathf.Cos(_angle * Mathf.Deg2Rad));
         RaycastHit hit;
         if (Physics.Raycast(transform.position, direction, out hit, viewRaidus, obstacleMask))
             return new RaycastInfo(true, hit.point, hit.distance, _angle);
         else
             return new RaycastInfo(false, transform.position + direction * viewRaidus, viewRaidus, _angle);
-    }
-
-    public Vector3 DirectionFromAngle(float degrees, bool global)
-    {
-        if (!global)
-            degrees += transform.eulerAngles.y;
-        return new Vector3(Mathf.Sin(degrees * Mathf.Deg2Rad), 0, Mathf.Cos(degrees * Mathf.Deg2Rad));
     }
 }

@@ -10,6 +10,9 @@ public class Enemy : MonoBehaviour
     public float _speed = 10.0f;
     public uint id = 0;
 
+    public Queue<float> lastDistanceRecord= new Queue<float>();
+    public float lastDistance = 0.0f;
+
     public int _previousIndex = 0;
     public int MaximumPath = 0;
 

@@ -31,6 +31,7 @@ public class Find : State
     public override void Execute(GameObject agent)
     {
         var EnemyAgent = agent.GetComponent<Enemy>();
+        var PlayerUnit = GameObject.FindGameObjectWithTag("Player").gameObject;
         bool found = false;
         if (totalTimer > 7.0f)
         {
