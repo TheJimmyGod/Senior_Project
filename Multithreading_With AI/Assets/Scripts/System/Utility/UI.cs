@@ -5,6 +5,7 @@ using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using System.Collections.Concurrent;
 
 public class UI : MonoBehaviour
 {
@@ -54,13 +55,14 @@ public class UI : MonoBehaviour
     private float[] _averages;
     private string[] _times;
 
+    public GameObject _performence;
     private Queue<UI_Info> _queueLock;
-    private Dictionary<int, UI_Element?> _sortedList;
+    private ConcurrentDictionary<int, UI_Element?> _sortedList;
     [Range(3,5)]
     public int _limitRound = 3;
     [SerializeField]
     private bool Active = false;
-    private int _round = 0;
+    private volatile int _round = 0;
     private uint _units = 0;
     private volatile bool _isRun = false;
     private volatile bool _isWait = false;
@@ -75,7 +77,7 @@ public class UI : MonoBehaviour
             return;
         _queueLock = new Queue<UI_Info>(_limitRound);
         _units = (uint)AI.Instance.EnemyCountForSpawning * 2;
-        _sortedList = new Dictionary<int, UI_Element?>((int)_units);
+        _sortedList = new ConcurrentDictionary<int, UI_Element?>();
         _averages = new float[_units];
         _times = new string[_units];
 
@@ -110,6 +112,17 @@ public class UI : MonoBehaviour
             _TextsForID[i] = e1.transform.Find("ID").gameObject;
             _TextsForTypeName[i] = e1.transform.Find("TypeName").gameObject;
             _TextsForDate[i] = e1.transform.Find("Date").gameObject;
+
+            
+           
+        }
+
+        foreach(var e in AI.Instance.enemies)
+        {
+            if(e.type == ThreadingType.Task)
+                _sortedList.TryAdd((int)e.id, new UI_Element(0, "Task", 1));
+            else
+                _sortedList.TryAdd((int)e.id, new UI_Element(0, "Thread", 1));
         }
 
         InitializeText();
@@ -120,6 +133,8 @@ public class UI : MonoBehaviour
 
     private void Update()
     {
+        _performence.GetComponent<Text>().text = "FPS: " + 1.0f / Time.deltaTime + "\n" + "Speed: " + Time.deltaTime * 1000.0f + "m/s" + "\n"
+    + "Round(Current/Total): (" + _round + "/" + _limitRound + ")" + "\n" + "Thread vaild values: " + AI.Instance.ThreadVaild;
         if (Active == false)
             return;
         if (_isRun == false)
@@ -135,22 +150,18 @@ public class UI : MonoBehaviour
                     if (!_sortedList.ContainsKey((int)result.id))
                     {
                         if (result.type == ThreadingType.Task)
-                            _sortedList.Add((int)result.id, new UI_Element(Mathf.Abs(result.time), "Task", 1));
+                            _sortedList.TryAdd((int)result.id, new UI_Element(Mathf.Abs(result.time), "Task", 1));
                         else
-                            _sortedList.Add((int)result.id, new UI_Element(Mathf.Abs(result.time), "Thread", 1));
-
-                        //Debug.Log("Add in enqueue: " + result.id);
+                            _sortedList.TryAdd((int)result.id, new UI_Element(Mathf.Abs(result.time), "Thread", 1));
                     }
+                    int count = _sortedList[(int)result.id].Value.count + 1;
+
+                    UI_Element Newdata;
+                    if (result.type == ThreadingType.Task)
+                        Newdata = new UI_Element(Mathf.Abs((_sortedList[(int)result.id].Value.averageTime) + Mathf.Abs(result.time)), "Task", count);
                     else
-                    {
-                        int count = _sortedList[(int)result.id].Value.count + 1;
-                        if (result.type == ThreadingType.Task)
-                            _sortedList[(int)result.id] = new UI_Element(Mathf.Abs((_sortedList[(int)result.id].Value.averageTime) + Mathf.Abs(result.time)), "Task", count);
-                        else
-                            _sortedList[(int)result.id] = new UI_Element(Mathf.Abs((_sortedList[(int)result.id].Value.averageTime) + Mathf.Abs(result.time)), "Thread", count);
-
-                        //Debug.Log("Revise in enqueue: " + result.id);
-                    }
+                        Newdata = new UI_Element(Mathf.Abs((_sortedList[(int)result.id].Value.averageTime) + Mathf.Abs(result.time)), "Thread", count);
+                    _sortedList.TryUpdate((int)result.id, Newdata, _sortedList[(int)result.id]);
                 }
             }
             else
@@ -233,15 +244,21 @@ public class UI : MonoBehaviour
             return;
         for (int id = 0; id < _units; ++id)
         {
-            if (_Texts[id] == null && _TextsForDate[id] == null && _TextsForID[id] == null && _TextsForTypeName == null)
+            if (_Texts[id] == null || _TextsForDate[id] == null || _TextsForID[id] == null || _TextsForTypeName == null)
                 continue;
-            _TextsForID[id].GetComponent<Text>().text = "ID: " + id.ToString();
-            _TextsForTypeName[id].GetComponent<Text>().text = "Type: " +  _sortedList[id].Value.type;
-            _Texts[id].GetComponent<Text>().text = "Average: " + _averages[id].ToString();
-            _TextsForDate[id].GetComponent<Text>().text = "Time: " + _times[id];
+            else
+            {
+                _TextsForID[id].GetComponent<Text>().text = "ID: " + id.ToString();
+                if(_sortedList[id].Value.type != null)
+                    _TextsForTypeName[id].GetComponent<Text>().text = "Type: " + _sortedList?[id].Value.type;
+                _Texts[id].GetComponent<Text>().text = "Average: " + _averages[id];
+                _TextsForDate[id].GetComponent<Text>().text = "Time: " + _times[id];
+            }
+
         }
 
         _isWait = false;
+        return;
     }
 
     public void EnqueueStatusInfo(UI_Info _info)
@@ -267,25 +284,21 @@ public class UI : MonoBehaviour
                 if (Instance._isWait == false)
                 {
                     Instance._isWait = true;
-                    //Debug.Log("Waiting...");
                     _childThread.WaitOne();
                 }
                 Instance._roundEnded = true;
-                if (Instance._sortedList.Count > 0)
+                foreach (var element in Instance?._sortedList.ToList())
                 {
-                    foreach (var element in Instance._sortedList.ToList())
-                    {
-                        float ave = element.Value.Value.averageTime / element.Value.Value.count;
-                        Instance._averages[element.Key] = ave;
-                        Instance._times[element.Key] = element.Value.Value.count.ToString();
-                    }
+                    float ave = element.Value.Value.averageTime / element.Value.Value.count;
+                    Instance._averages[element.Key] = ave;
+                    Instance._times[element.Key] = element.Value.Value.count.ToString();
                 }
                 Instance._roundEnded = false;
             }
         }
-        catch(Exception ex)
+        finally
         {
-            Debug.Log("UI Thread has been failed to executed! - " + ex.ToString());
+            Instance._isRun = false;
         }
     }
 

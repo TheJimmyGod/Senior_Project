@@ -22,6 +22,7 @@ public class AStar : MonoBehaviour, PathFindInterface
         if (EndNode.walkable == TileType.UnWalkable)
         {
             Debug.Log("<color=red>Warning!</color>" + " " + "EndNode is unwalkable!");
+            callback(new PathResultInfo(waypoints, false, requestInfo.callback));
             return;
         }
 
@@ -61,19 +62,23 @@ public class AStar : MonoBehaviour, PathFindInterface
 
                         int E_index = 0;
                         Node temp = null;
-                        IEnumerator<Node> NodeEnumerator = openList.GetEnumerator();
-                        if (openList.Count > 0)
+
+                        using (IEnumerator<Node> NodeEnumerator = openList.GetEnumerator())
                         {
-                            while (NodeEnumerator.MoveNext())
+                            if (openList.Count > 0)
                             {
-                                E_index++;
-                                temp = Grid.Instance.grids[NodeEnumerator.Current.gridX, NodeEnumerator.Current.gridY];
-                                if (neighbour.f < temp.g + temp.h)
+                                while (NodeEnumerator.MoveNext())
                                 {
-                                    break;
+                                    E_index++;
+                                    temp = Grid.Instance.grids[NodeEnumerator.Current.gridX, NodeEnumerator.Current.gridY];
+                                    if (neighbour.f < temp.g + temp.h)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }
+
                         if (!openList.Contains(temp))
                             openList.Add(neighbour);
                         else

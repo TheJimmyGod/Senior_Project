@@ -84,7 +84,7 @@ public class PathTask
             throw;
         }
         _stopWatch.Stop();
-        UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, _stopWatch.ElapsedMilliseconds * 0.001f, ThreadingType.Task));
+        UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, Mathf.Clamp01((float)(_stopWatch.ElapsedMilliseconds * 0.001f)), ThreadingType.Task));
         _stopWatch.Reset();
 
         _isRun = false;

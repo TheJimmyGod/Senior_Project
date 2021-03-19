@@ -13,6 +13,7 @@ public class DFS : MonoBehaviour, PathFindInterface
     {
         Queue<Node> openList = new Queue<Node>();
         HashSet<Node> closedList = new HashSet<Node>();
+
         Node StartNode = Grid.Instance.GetNodeFromWorld(requestInfo.start);
         Node EndNode = Grid.Instance.GetNodeFromWorld(requestInfo.end);
 
@@ -21,6 +22,7 @@ public class DFS : MonoBehaviour, PathFindInterface
         if(EndNode.walkable == TileType.UnWalkable)
         {
             Debug.Log("<color=red>Warning!</color>" + " " + "EndNode is unwalkable!");
+            callback(new PathResultInfo(waypoints, false, requestInfo.callback));
             return;
         }
 
@@ -40,21 +42,24 @@ public class DFS : MonoBehaviour, PathFindInterface
                 IEnumerable<Node> neighbours = Grid.Instance.GetNeighbours(current);
                 int count = neighbours.Count();
 
-                IEnumerator<Node> iterator = neighbours.GetEnumerator();
-                while(iterator.MoveNext())
+                using (IEnumerator<Node> iterator = neighbours.GetEnumerator())
                 {
-                    var neighbour = iterator.Current;
-                    int id = neighbour.index;
-
-                    if (closedList.Contains(neighbour))
-                        continue;
-
-                    if (neighbour.walkable == TileType.Walkable && !openList.Contains(neighbour))
+                    while (iterator.MoveNext())
                     {
-                        openList.Enqueue(neighbour);
-                        neighbour.parent = current;
+                        var neighbour = iterator.Current;
+                        int id = neighbour.index;
+
+                        if (closedList.Contains(neighbour))
+                            continue;
+
+                        if (neighbour.walkable == TileType.Walkable && !openList.Contains(neighbour))
+                        {
+                            openList.Enqueue(neighbour);
+                            neighbour.parent = current;
+                        }
                     }
                 }
+
             }
             closedList.Add(current);
         }

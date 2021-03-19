@@ -91,7 +91,7 @@ public class PathThread
             Debug.Log("Thread error: " + ex);
         }
         _stopWatch.Stop();
-        UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, (float)(_stopWatch.ElapsedMilliseconds * 0.001), ThreadingType.Thread));
+        UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, Mathf.Clamp01((float)(_stopWatch.ElapsedMilliseconds * 0.001)), ThreadingType.Thread));
         _stopWatch.Reset();
         _isRun = false;
     }

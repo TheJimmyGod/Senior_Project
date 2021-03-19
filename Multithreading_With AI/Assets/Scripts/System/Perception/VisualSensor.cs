@@ -48,20 +48,21 @@ public class VisualSensor : MonoBehaviour
                 float distance = Vector3.Distance(transform.position, targetTransform.position);
                 if (Grid.Instance.GetNodeFromWorld(targetTransform.position).walkable == TileType.Bush)
                 {
-                    if (this.gameObject.GetComponent<Enemy>().lastDistance > 0.0f &&
-                        this.gameObject.GetComponent<Enemy>().lastDistance - distance < 2.0f)
+                    if (this.gameObject.GetComponent<Enemy>().lastDistance + distance < viewRaidus && this.gameObject.GetComponent<Enemy>().lastDistance - distance >= 0.0f)
                     {
                         // Continue
                     }
                     else
                         return false;
                 }
-
                 bool check = !Physics.Raycast(transform.position, direction, distance, obstacleMask);
                 if(check == true)
                 {
-                    if (this.gameObject.GetComponent<Enemy>().lastDistanceRecord.Count > 2)
-                         this.gameObject.GetComponent<Enemy>().lastDistance = this.gameObject.GetComponent<Enemy>().lastDistanceRecord.Dequeue();
+                    if (this.gameObject.GetComponent<Enemy>().lastDistanceRecord.Count >= 1)
+                    {
+                        this.gameObject.GetComponent<Enemy>().lastDistance = this.gameObject.GetComponent<Enemy>().lastDistanceRecord.Dequeue();
+                        this.gameObject.GetComponent<Enemy>().lastDistanceRecord.Enqueue(distance);
+                    }
                     else
                         this.gameObject.GetComponent<Enemy>().lastDistanceRecord.Enqueue(distance);
                 }

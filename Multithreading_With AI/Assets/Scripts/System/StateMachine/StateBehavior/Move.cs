@@ -53,6 +53,8 @@ public class Move : State
             }
             else
             {
+                EnemyAgent.lastDistanceRecord.Clear();
+                EnemyAgent.lastDistance = 0.0f;
                 bool accept = false;
                 Vector3 pos = new Vector3(Random.Range(-Grid.Instance.gridSizeX, Grid.Instance.gridSizeX), 0.0f, Random.Range(-Grid.Instance.gridSizeY, Grid.Instance.gridSizeY));
                 while(accept == false)
@@ -67,7 +69,6 @@ public class Move : State
                         accept = true;
                 }
 
-                EnemyAgent.lastDistanceRecord.Clear();
 
                 box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, pos, EnemyAgent.PathFound);
                 if (EnemyAgent.type == ThreadingType.Thread)
