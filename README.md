@@ -11,7 +11,7 @@
 ---
 
 ### Introduction
-**Stealthos** is a senior project which utilizes multi-threading for AI pathfinding. The project was motivated by the *Commandos series*, and started from the curiosity of **how multithreaded pathfinding affects the performance**. For implementation, I programmed a ```C++ queuing system for executing DFS and  A* search using threads and tasks```, ```state machine for controlling the agents```, and ```visual sensor for perception```.
+**Stealthos** is a senior project which utilizes multi-threading for AI pathfinding. The project was motivated by the *Commandos series*, and started from the curiosity of **how multithreaded pathfinding affects the performance**. For implementation, I programmed a ```queuing system for executing DFS and  A* search using threads and tasks```, ```state machine for controlling the agents```, and ```visual sensor for perception```.
 
 ---
 
