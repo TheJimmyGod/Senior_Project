@@ -52,6 +52,7 @@ public class UI : MonoBehaviour
     private static EventWaitHandle _childThread = new EventWaitHandle(false, EventResetMode.AutoReset);
     private static Thread _thread;
 
+    public float _approximateTime = 0.0f;
     private float[] _averages;
     private string[] _times;
 
@@ -133,8 +134,17 @@ public class UI : MonoBehaviour
 
     private void Update()
     {
-        _performence.GetComponent<Text>().text = "FPS: " + 1.0f / Time.deltaTime + "\n" + "Speed: " + Time.deltaTime * 1000.0f + "m/s" + "\n"
-    + "Round(Current/Total): (" + _round + "/" + _limitRound + ")" + "\n" + "Thread vaild values: " + AI.Instance.ThreadVaild;
+        if(AI.Instance.pathFindOptions == PathFindOptions.AStar)
+        {
+            _performence.GetComponent<Text>().text = "PathFind Search: " + "A*" + "\n" + "Approximate Time: " + _approximateTime + " m/s" + "\n"
++ "Round(Current/Total): (" + _round + "/" + _limitRound + ")" + "\n" + "Thread vaild values: " + AI.Instance.ThreadVaild;
+        }
+        else
+        {
+            _performence.GetComponent<Text>().text = "PathFind Search: " + "DFS" + "\n" + "Approximate Time: " + _approximateTime + " m/s" + "\n"
++ "Round(Current/Total): (" + _round + "/" + _limitRound + ")" + "\n" + "Thread vaild values: " + AI.Instance.ThreadVaild;
+        }
+
         if (Active == false)
             return;
         if (_isRun == false)
@@ -147,20 +157,21 @@ public class UI : MonoBehaviour
                 {
                     var result = _queueLock.Dequeue();
                     _round++;
+                    float time = (result.time <= 0.0f) ? 0.0f : result.time;
                     if (!_sortedList.ContainsKey((int)result.id))
                     {
                         if (result.type == ThreadingType.Task)
-                            _sortedList.TryAdd((int)result.id, new UI_Element(Mathf.Abs(result.time), "Task", 1));
+                            _sortedList.TryAdd((int)result.id, new UI_Element(time, "Task", 1));
                         else
-                            _sortedList.TryAdd((int)result.id, new UI_Element(Mathf.Abs(result.time), "Thread", 1));
+                            _sortedList.TryAdd((int)result.id, new UI_Element(time, "Thread", 1));
                     }
                     int count = _sortedList[(int)result.id].Value.count + 1;
 
                     UI_Element Newdata;
                     if (result.type == ThreadingType.Task)
-                        Newdata = new UI_Element(Mathf.Abs((_sortedList[(int)result.id].Value.averageTime) + Mathf.Abs(result.time)), "Task", count);
+                        Newdata = new UI_Element(_sortedList[(int)result.id].Value.averageTime + time, "Task", count);
                     else
-                        Newdata = new UI_Element(Mathf.Abs((_sortedList[(int)result.id].Value.averageTime) + Mathf.Abs(result.time)), "Thread", count);
+                        Newdata = new UI_Element(_sortedList[(int)result.id].Value.averageTime + time, "Thread", count);
                     _sortedList.TryUpdate((int)result.id, Newdata, _sortedList[(int)result.id]);
                 }
             }

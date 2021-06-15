@@ -36,7 +36,7 @@ public class AI : MonoBehaviour
     [SerializeField]
     private AStarHeuristics _AStarHeuristics = AStarHeuristics.Manhattan;
 
-    [Range(1,4)]
+    [Range(1,200)]
     public int EnemyCountForSpawning = 1;
 
     [Range(1, 4)]

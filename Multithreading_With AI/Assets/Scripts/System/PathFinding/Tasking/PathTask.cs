@@ -11,6 +11,8 @@ public class PathTask
 {
     private PathReqeustInfo _info;
     private int _taskID;
+    private long _latestTime;
+    private long _totalTime;
     public int TaskID
     {
         get { return _taskID; }
@@ -86,7 +88,11 @@ public class PathTask
         _stopWatch.Stop();
         UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, Mathf.Clamp01((float)(_stopWatch.ElapsedMilliseconds * 0.001f)), ThreadingType.Task));
         _stopWatch.Reset();
-
+        _latestTime = _stopWatch.ElapsedMilliseconds;
+        _totalTime += _latestTime;
+        UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, (float)_latestTime * 0.001f, ThreadingType.Thread));
+        if (UI.Instance._approximateTime <= Mathf.Clamp01(_totalTime / 1000.0f))
+            UI.Instance._approximateTime = Mathf.Clamp01(_totalTime / 1000.0f);
         _isRun = false;
     }
 

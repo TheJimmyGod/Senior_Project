@@ -1357,6 +1357,7 @@ MonoBehaviour:
     type: 3}
   position: {fileID: 1717869232}
   position2: {fileID: 644505895}
+  _approximateTime: 0
   _performence: {fileID: 1117615221}
   _limitRound: 3
   Active: 1
@@ -6735,7 +6736,8 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "FPS: 0\nSpeed: 0\nRound(Current/Total): (0/0)\nThread vaild values: \n"
+  m_Text: "PathFind Search:\nApproximate Time: 0\nRound(Current/Total): (0/0)\nThread
+    vaild values: \n"
 --- !u!222 &1117615223
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -9517,8 +9519,8 @@ MonoBehaviour:
   displayGridList: 1
   _pathFindOptions: 1
   _AStarHeuristics: 2
-  EnemyCountForSpawning: 2
-  ThreadVaild: 3
+  EnemyCountForSpawning: 50
+  ThreadVaild: 1
   PlayerSpeed: 9.3
   _setting:
     Start: {x: -7, y: 0, z: -8}
@@ -9561,7 +9563,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cda4380f7ad330649885987d1049d05e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sleepTime: 5
+  sleepTime: 4
 --- !u!114 &1533600494
 MonoBehaviour:
   m_ObjectHideFlags: 0

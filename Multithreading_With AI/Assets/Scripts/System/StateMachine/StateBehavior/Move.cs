@@ -41,7 +41,7 @@ public class Move : State
             {
                 Node playerPos = Grid.Instance.GetNodeFromWorld(PlayerUnit.transform.position);
                 EnemyAgent.transform.LookAt(PlayerUnit.transform);
-                box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, playerPos.position, EnemyAgent.PathFound);
+                box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, playerPos.position, EnemyAgent.PathFound); // main loop
                 if (EnemyAgent.type == ThreadingType.Thread)
                 {
                     PathThreadManager.RequestInfo(box);
