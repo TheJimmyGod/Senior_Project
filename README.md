@@ -11,7 +11,7 @@
 ---
 
 ### Introduction
-**Stealthos** is a senior project which has AI features with ```multi-threading```. The project was motivated by the *Commandos series*, and started from the curiosity of ```how multithreaded pathfinding affects the performance```. For implementation, I included ```A* search has multi-threading```, ```state machine```, ```UI for statistics```, ```comparison between thread and task```, and ```visual sensor```.
+**Stealthos** is a senior project which has AI features with ```multi-threading```. The project was motivated by the *Commandos series*, and started from the curiosity of **how multithreaded pathfinding affects the performance**. For implementation, I included ```A* search has multi-threading```, ```state machine```, ```UI for statistics```, ```comparison between thread and task```, and ```visual sensor```.
 
 ---
 
