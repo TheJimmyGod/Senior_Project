@@ -1,12 +1,12 @@
 # Senior Project
 
 ### Contents
-1. Introduction
-2. How to use
-3. Features
-4. Principles of Multi-threading work
-5. Examples
-6. Acknowledgement
+1. [Introduction](https://github.com/TheJimmyGod/Senior_Project#introduction)
+2. [How to use](https://github.com/TheJimmyGod/Senior_Project#how-to-use)
+3. [Features](https://github.com/TheJimmyGod/Senior_Project#features)
+4. [Principles of Multi-threading work](https://github.com/TheJimmyGod/Senior_Project#principles-of-multi-threading-work)
+5. [Examples](https://github.com/TheJimmyGod/Senior_Project#examples)
+6. [Acknowledgement](https://github.com/TheJimmyGod/Senior_Project#acknowledgement)
 
 ---
 
