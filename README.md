@@ -1,4 +1,5 @@
 # Senior Project
+
 ### Contents
 1. Introduction
 2. How to use
@@ -45,9 +46,15 @@ The main thread sends a new request to the thread manager, and is assigned to on
 ### Examples
 ![Screen](https://github.com/TheJimmyGod/Senior_Project/blob/main/Multithreading_With%20AI/Documents/One.gif)
 
+The screenshot is to showcase of visual sensor when sight in one of entities has reached nearby the player.
+
 ![Screen](https://github.com/TheJimmyGod/Senior_Project/blob/main/Multithreading_With%20AI/Documents/Two.gif)
 
+The screenshot is to showcase of printing out the outcome for all agents when the round has been finished.
+
 ![Screen](https://github.com/TheJimmyGod/Senior_Project/blob/main/Multithreading_With%20AI/Documents/100Entities.gif)
+
+The screenshot displays the outcome when the entities are 100 and threads are 4 counts. The game maintains working pathfinding search, even though the performance is getting slower.
 
 ### Acknowledgement
 [Richard Zampieri](https://github.com/rsaz) the instructor
