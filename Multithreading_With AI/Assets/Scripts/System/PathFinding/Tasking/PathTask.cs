@@ -90,7 +90,7 @@ public class PathTask
         _stopWatch.Reset();
         _latestTime = _stopWatch.ElapsedMilliseconds;
         _totalTime += _latestTime;
-        UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, (float)_latestTime * 0.001f, ThreadingType.Thread));
+        UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, (float)_latestTime * 0.001f, ThreadingType.Task));
         if (UI.Instance._approximateTime <= Mathf.Clamp01(_totalTime / 1000.0f))
             UI.Instance._approximateTime = Mathf.Clamp01(_totalTime / 1000.0f);
         _isRun = false;

@@ -9519,8 +9519,8 @@ MonoBehaviour:
   displayGridList: 1
   _pathFindOptions: 1
   _AStarHeuristics: 2
-  EnemyCountForSpawning: 50
-  ThreadVaild: 1
+  EnemyCountForSpawning: 2
+  ThreadVaild: 4
   PlayerSpeed: 9.3
   _setting:
     Start: {x: -7, y: 0, z: -8}
