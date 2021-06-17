@@ -34,16 +34,14 @@ public class PathThread
 
         if (info is PathReqeustInfo)
             _info = (PathReqeustInfo)info;
- 
-        //_isRun = false;
     }
-    
+
     public void CreateThread()
     {
         // ParameterizedThreadStart = Parameter is required
         // ThreadStart = All okay
-        if (_thread == null)
-            _thread = new Thread(new ParameterizedThreadStart(ExecuteThread));
+        _thread = new Thread(new ParameterizedThreadStart(ExecuteThread));
+        //_thread.IsBackground = true;
         RunThread();
     }
 
@@ -52,17 +50,8 @@ public class PathThread
         if (!_isRun)
         {
             _isRun = true;
-            if(_thread.ThreadState == System.Threading.ThreadState.Stopped)
-            {
-                _thread = new Thread(new ParameterizedThreadStart(ExecuteThread));
-                _thread.Start(_threadID);
-                _thread.Join();
-            }
-            else
-            {
-                _thread.Start(_threadID);
-                _thread.Join();
-            }
+            _thread.Start(_threadID);
+            _thread.Join();
         }
         else
             return;

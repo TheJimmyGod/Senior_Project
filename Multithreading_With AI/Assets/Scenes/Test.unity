@@ -9518,7 +9518,7 @@ MonoBehaviour:
   aStar: {fileID: 0}
   displayGridList: 1
   _pathFindOptions: 1
-  _AStarHeuristics: 2
+  _AStarHeuristics: 1
   EnemyCountForSpawning: 2
   ThreadVaild: 4
   PlayerSpeed: 9.3

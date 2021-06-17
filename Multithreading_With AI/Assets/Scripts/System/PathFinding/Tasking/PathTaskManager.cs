@@ -89,15 +89,10 @@ public class PathTaskManager : MonoBehaviour
             for (int counter = 0; counter < Instance._tasks.Length; ++counter)
             {
                 if (Instance._tasks[counter] == null)
-                {
                     Instance._tasks[counter] = new PathTask(info, counter);
-                    Instance._tasks[counter].CreateTask();
-                }
                 else
-                {
                     Instance._tasks[counter].ResetTask(info);
-                    Instance._tasks[counter].RunTask();
-                }
+                Instance._tasks[counter].RunTask();
             }
         }
 

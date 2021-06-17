@@ -121,9 +121,9 @@ public class UI : MonoBehaviour
         foreach(var e in AI.Instance.enemies)
         {
             if(e.type == ThreadingType.Task)
-                _sortedList.TryAdd((int)e.id, new UI_Element(0, "Task", 1));
+                _sortedList.TryAdd((int)e.id, new UI_Element(0, "Task", 0));
             else
-                _sortedList.TryAdd((int)e.id, new UI_Element(0, "Thread", 1));
+                _sortedList.TryAdd((int)e.id, new UI_Element(0, "Thread", 0));
         }
 
         InitializeText();
@@ -161,9 +161,9 @@ public class UI : MonoBehaviour
                     if (!_sortedList.ContainsKey((int)result.id))
                     {
                         if (result.type == ThreadingType.Task)
-                            _sortedList.TryAdd((int)result.id, new UI_Element(time, "Task", 1));
+                            _sortedList.TryAdd((int)result.id, new UI_Element(time, "Task", 0));
                         else
-                            _sortedList.TryAdd((int)result.id, new UI_Element(time, "Thread", 1));
+                            _sortedList.TryAdd((int)result.id, new UI_Element(time, "Thread", 0));
                     }
                     int count = _sortedList[(int)result.id].Value.count + 1;
 
@@ -280,9 +280,7 @@ public class UI : MonoBehaviour
             return;
 
         lock(_queueLock)
-        {
             _queueLock.Enqueue(_info);
-        }
     }
 
     private static void ExecuteThread()

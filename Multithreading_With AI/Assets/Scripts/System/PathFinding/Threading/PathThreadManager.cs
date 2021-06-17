@@ -94,15 +94,10 @@ public class PathThreadManager : MonoBehaviour
             for (int counter = 0; counter < Instance._threads.Length; ++counter)
             {
                 if (Instance._threads[counter] == null)
-                {
                     Instance._threads[counter] = new PathThread(info, counter);
-                    Instance._threads[counter].CreateThread();
-                }
                 else
-                {
                     Instance._threads[counter].ResetThread(info);
-                    Instance._threads[counter].RunThread();
-                }
+                Instance._threads[counter].CreateThread();
             }
         }
 
