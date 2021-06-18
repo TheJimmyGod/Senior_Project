@@ -22,9 +22,6 @@ public class PathThreadManager : MonoBehaviour
     private Queue<object> QueueLock;
     private PathThread[] _threads;
     
-    [Range(1,100)]
-    public int sleepTime = 10;
-
     private void Start()
     {
         QueueLock = new Queue<object>();
@@ -34,15 +31,12 @@ public class PathThreadManager : MonoBehaviour
     private void Update()
     {
         if (QueueLock.Count == 0)
-            Thread.Sleep(sleepTime);
+            Thread.Sleep(AI.Instance.sleepTime);
         else if (QueueLock.Count > 0)
         {
-            // Monitor is no different from lock but the monitor class provides more control 
-            // over the synchronization of various threads trying to access the same lock of code.
             bool isEntered = false;
             try
             {
-                //Debug.Log("<color=green>Confirmed Queue has been enqueued... </color>");
                 System.Threading.Monitor.Enter(QueueLock, ref isEntered);
                 int count = QueueLock.Count;
                 for (int i = 0; i < count; ++i)
@@ -64,6 +58,21 @@ public class PathThreadManager : MonoBehaviour
                 System.Threading.Monitor.Exit(QueueLock);
             }
         }
+        TimeCheck();
+    }
+
+    public static void TimeCheck()
+    {
+        for (int counter = 0; counter < Instance._threads.Length; counter++)
+        {
+            if(Instance._threads[counter] != null)
+            {
+                if (Instance._threads[counter]._stopWatchForApproximate == null)
+                    continue;
+                if(Instance._threads[counter]._stopWatchForApproximate.ElapsedMilliseconds >= 1000)
+                    Instance._threads[counter].TimeCheckOut();
+            }
+        }
     }
 
     public void FinalizedProcessingEnqueue(PathResultInfo result)
@@ -71,7 +80,6 @@ public class PathThreadManager : MonoBehaviour
         bool isEntered = false;
         try
         {
-            //Debug.Log("<color=green>Entering the process of enqueue... </color>");
             System.Threading.Monitor.Enter(QueueLock, ref isEntered);
             QueueLock.Enqueue(result);
         }
@@ -81,14 +89,12 @@ public class PathThreadManager : MonoBehaviour
         }
         finally
         {
-            //Debug.Log("<color=green>Exiting from the request... </color>");
             System.Threading.Monitor.Exit(QueueLock);
         }
     }
 
     public static void RequestInfo(object info)
     {
-        // Rendering or Physics
         if(info is PathReqeustInfo)
         {
             for (int counter = 0; counter < Instance._threads.Length; ++counter)
@@ -100,8 +106,6 @@ public class PathThreadManager : MonoBehaviour
                 Instance._threads[counter].CreateThread();
             }
         }
-
-        //Debug.Log("<color=green>Thread has been create for request... </color>");
     }
 }
 

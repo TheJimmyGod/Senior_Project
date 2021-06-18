@@ -19,11 +19,11 @@ public class PathTask
     }
 
     private Stopwatch _stopWatch = new Stopwatch();
-
+    public Stopwatch _stopWatchForApproximate = new Stopwatch();
     private Task _task;
 
     public volatile bool _isRun = false;
-
+    private bool _isStarted = false;
     public PathTask(object info, int num)
     {
         this._taskID = num;
@@ -44,9 +44,27 @@ public class PathTask
         {
             _isRun = true;
             ExecuteTask(_taskID);
+            if (_isStarted == false)
+            {
+                _isStarted = true;
+                _stopWatchForApproximate.Start();
+            }
         }
 
     }
+
+    public void TimeCheckOut()
+    {
+        _stopWatchForApproximate.Reset();
+        _stopWatchForApproximate.Start();
+        if((_totalTime / 1000.0f) != 0.0f)
+        {
+            if(UI.Instance._approximateTime < _totalTime / 1000.0f)
+                UI.Instance._approximateTime = _totalTime / 1000.0f;
+        }
+        _totalTime = 0;
+    }
+
 
     //  Task asynchronous programming model (TAP): avoid performance bottlenecks and enhance the overall responsiveness 
     //  of your application by using asynchronous programming.
@@ -58,20 +76,31 @@ public class PathTask
             return;
 
         _stopWatch.Start();
+        var tasks = new List<Task>();
         try
         {
             if (AI.Instance.pathFindOptions == PathFindOptions.DFS)
             {
                 // DFS
-                _task = Task.Run(async () => await Task.Run(() => AI.Instance.ExecutePathFindingDFS(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue)));
-
+                _task = Task.Run(async () => 
+                {
+                    AI.Instance.ExecutePathFindingDFS(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue);
+                    await Task.Delay(AI.Instance.sleepTime);
+                });
+                tasks.Add(_task);
             }
             if (AI.Instance.pathFindOptions == PathFindOptions.AStar)
             {
                 // AStar
-                _task = Task.Run(async () => await Task.Run(() => AI.Instance.ExecutePathFindingAStar(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue)));
+                _task = Task.Run(async () =>
+                {
+                    AI.Instance.ExecutePathFindingAStar(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue);
+                    await Task.Delay(AI.Instance.sleepTime);
+                }
+                );
+                tasks.Add(_task);
             }
-            _task.Wait();
+            Task.WaitAll(tasks.ToArray());
         }
         catch (Exception ex)
         {
@@ -83,14 +112,6 @@ public class PathTask
         _totalTime += _latestTime;
         _stopWatch.Reset();
         UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, (float)_latestTime * 0.001f, ThreadingType.Task));
-        if (UI.Instance._approximateTime <= Mathf.Clamp01(_totalTime / 1000.0f))
-            UI.Instance._approximateTime = Mathf.Clamp01(_totalTime / 1000.0f);
         _isRun = false;
-    }
-
-    public void OnApplicationQuit()
-    {
-        _isRun = false;
-        _task.Dispose();
     }
 }

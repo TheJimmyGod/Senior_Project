@@ -9519,9 +9519,10 @@ MonoBehaviour:
   displayGridList: 1
   _pathFindOptions: 1
   _AStarHeuristics: 1
-  EnemyCountForSpawning: 2
-  ThreadVaild: 4
+  EnemyCountForSpawning: 50
+  ThreadVaild: 1
   PlayerSpeed: 9.3
+  sleepTime: 10
   _setting:
     Start: {x: -7, y: 0, z: -8}
     End: {x: -3, y: 0, z: 4}
@@ -9563,7 +9564,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cda4380f7ad330649885987d1049d05e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sleepTime: 4
 --- !u!114 &1533600494
 MonoBehaviour:
   m_ObjectHideFlags: 0

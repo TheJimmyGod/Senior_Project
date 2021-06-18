@@ -176,7 +176,7 @@ public class UI : MonoBehaviour
                 }
             }
             else
-                Thread.Sleep(PathThreadManager.Instance.sleepTime);
+                Thread.Sleep(AI.Instance.sleepTime);
         }
 
         if(_round >= _limitRound)
@@ -308,16 +308,6 @@ public class UI : MonoBehaviour
         finally
         {
             Instance._isRun = false;
-        }
-    }
-
-    private void OnApplicationQuit()
-    {
-        if(Active)
-        {
-            _isRun = false;
-            _childThread.Close();
-            _thread.Abort();
         }
     }
 }

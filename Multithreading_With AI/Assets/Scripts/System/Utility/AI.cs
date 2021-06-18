@@ -44,7 +44,8 @@ public class AI : MonoBehaviour
 
     [Range(1.0f, 50.0f)]
     public float PlayerSpeed = 1.0f;
-
+    [Range(1, 100)]
+    public int sleepTime = 10;
     private GameObject _playerObj = null;
 
     // There will be set functions that executions of AI behaviours

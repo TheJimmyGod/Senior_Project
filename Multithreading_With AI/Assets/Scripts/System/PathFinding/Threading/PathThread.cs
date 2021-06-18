@@ -15,12 +15,12 @@ public class PathThread
         get { return _threadID; }
     }
     private Stopwatch _stopWatch = new Stopwatch();
-
+    public Stopwatch _stopWatchForApproximate = new Stopwatch();
     private Thread _thread;
     private long _latestTime;
     private long _totalTime;
     public volatile bool _isRun = false;
-
+    private bool _isStarted = false;
     public PathThread(object info, int num)
     {
         this._threadID = num;
@@ -52,9 +52,23 @@ public class PathThread
             _isRun = true;
             _thread.Start(_threadID);
             _thread.Join();
+            if (_isStarted == false)
+            {
+                _isStarted = true;
+                _stopWatchForApproximate.Start();
+            }
         }
         else
             return;
+    }
+
+    public void TimeCheckOut()
+    {
+        _stopWatchForApproximate.Reset();
+        _stopWatchForApproximate.Start();
+        if ((_totalTime / 1000.0f) != 0.0f)
+            UI.Instance._approximateTime = _totalTime / 1000.0f;
+        _totalTime = 0;
     }
 
     public void ExecuteThread(object id = null)
@@ -68,11 +82,13 @@ public class PathThread
             {
                 // DFS
                 AI.Instance.ExecutePathFindingDFS(_info, PathThreadManager.Instance.FinalizedProcessingEnqueue);
+                Thread.Sleep(AI.Instance.sleepTime);
             }
             else if (AI.Instance.pathFindOptions == PathFindOptions.AStar)
             {
                 // AStar
                 AI.Instance.ExecutePathFindingAStar(_info, PathThreadManager.Instance.FinalizedProcessingEnqueue);
+                Thread.Sleep(AI.Instance.sleepTime);
             }
         }
         catch (Exception ex)
@@ -84,14 +100,6 @@ public class PathThread
         _totalTime += _latestTime;
         _stopWatch.Reset();
         UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, (float)_latestTime * 0.001f, ThreadingType.Thread));
-        if(UI.Instance._approximateTime <= Mathf.Clamp01(_totalTime / 1000.0f))
-            UI.Instance._approximateTime = Mathf.Clamp01(_totalTime / 1000.0f);
         _isRun = false;
-    }
-
-    private void OnApplicationQuit()
-    {
-        _isRun = false;
-        _thread.Abort();
     }
 }

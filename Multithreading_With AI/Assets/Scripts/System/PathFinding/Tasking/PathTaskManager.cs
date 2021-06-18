@@ -30,7 +30,9 @@ public class PathTaskManager : MonoBehaviour
     private void Update()
     {
         if (QueueLock.Count == 0)
-            return;
+        {
+            Task.Delay(AI.Instance.sleepTime);
+        }
         else
         {
             bool isEntered = false;
@@ -58,6 +60,7 @@ public class PathTaskManager : MonoBehaviour
                 System.Threading.Monitor.Exit(QueueLock);
             }
         }
+        TimeCheck();
     }
 
     public void FinalizedProcessingEnqueue(PathResultInfo result)
@@ -79,8 +82,19 @@ public class PathTaskManager : MonoBehaviour
             System.Threading.Monitor.Exit(QueueLock);
         }
     }
-
-    // TODO: Create New finalizedProcessingEnqueue
+    public static void TimeCheck()
+    {
+        for (int counter = 0; counter < Instance._tasks.Length; counter++)
+        {
+            if (Instance._tasks[counter] != null)
+            {
+                if (Instance._tasks[counter]._stopWatchForApproximate == null)
+                    continue;
+                if (Instance._tasks[counter]._stopWatchForApproximate.ElapsedMilliseconds >= 1000)
+                    Instance._tasks[counter].TimeCheckOut();
+            }
+        }
+    }
 
     public static void RequestInfo(object info) // 동기 방식
     {
