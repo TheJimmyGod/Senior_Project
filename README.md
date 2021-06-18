@@ -58,7 +58,7 @@ The main thread sends a new request to the thread manager, and is assigned to on
 
 The screenshot is to showcase of visual sensor when sight in one of entities has reached nearby the player.
 
-![Screen](https://github.com/TheJimmyGod/Senior_Project/blob/main/Multithreading_With%20AI/Documents/Two.gif)
+![Screen](https://github.com/TheJimmyGod/Senior_Project/blob/main/Multithreading_With%20AI/Documents/UI.gif)
 
 The screenshot is to showcase of printing out the outcome for all agents when the round has been finished.
 
