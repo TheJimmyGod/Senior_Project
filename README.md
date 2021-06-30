@@ -62,9 +62,10 @@ The screenshot is to showcase of visual sensor when sight in one of entities has
 
 The screenshot is to showcase of printing out the outcome for all agents when the round has been finished.
 
-![Screen](https://github.com/TheJimmyGod/Senior_Project/blob/main/Multithreading_With%20AI/Documents/100Entities.gif)
+![Screen](https://github.com/TheJimmyGod/Senior_Project/blob/main/Multithreading_With%20AI/Documents/OneT.gif)
+![Screen](https://github.com/TheJimmyGod/Senior_Project/blob/main/Multithreading_With%20AI/Documents/FourT.gif)
 
-The screenshot displays the outcome when the entities are 100 and threads are 4 counts. The game maintains working pathfinding search, even though the performance is getting slower.
+The screenshot displays the outcome when the entities are 100 and threads with 1 and 4 thread counts each. The game maintains working pathfinding search, even though the performance is getting slower.
 
 ---
 
