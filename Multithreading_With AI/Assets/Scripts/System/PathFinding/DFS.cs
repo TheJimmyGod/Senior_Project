@@ -11,7 +11,7 @@ public class DFS : MonoBehaviour, PathFindInterface
 {
     public void Search(PathReqeustInfo requestInfo, Action<PathResultInfo> callback)
     {
-        Queue<Node> openList = new Queue<Node>();
+        Stack<Node> openList = new Stack<Node>();
         HashSet<Node> closedList = new HashSet<Node>();
 
         Node StartNode = Grid.Instance.GetNodeFromWorld(requestInfo.start);
@@ -26,12 +26,12 @@ public class DFS : MonoBehaviour, PathFindInterface
             return;
         }
 
-        openList.Enqueue(StartNode);
+        openList.Push(StartNode);
 
         bool found = false;
         while(!found && openList.Count > 0)
         {
-            Node current = openList.Dequeue();
+            Node current = openList.Pop();
             if (current.gridX == EndNode.gridX && current.gridY == EndNode.gridY)
             {
                 found = true;
@@ -54,7 +54,7 @@ public class DFS : MonoBehaviour, PathFindInterface
 
                         if (neighbour.walkable == TileType.Walkable && !openList.Contains(neighbour))
                         {
-                            openList.Enqueue(neighbour);
+                            openList.Push(neighbour);
                             neighbour.parent = current;
                         }
                     }
@@ -64,26 +64,25 @@ public class DFS : MonoBehaviour, PathFindInterface
             closedList.Add(current);
         }
 
-        Queue<Node> trace = new Queue<Node>();
+        Stack<Node> trace = new Stack<Node>();
 
         if (found)
         {
             Node node = EndNode;
             while (node != StartNode)
             {
-                trace.Enqueue(node);
+                if (!trace.Contains(node))
+                    trace.Push(node);
                 node = node.parent;
             }
-            Queue<Vector3> convertToVec3 = new Queue<Vector3>();
+            Stack<Vector3> convertToVec3 = new Stack<Vector3>();
 
             while (trace.Count > 0)
             {
-                convertToVec3.Enqueue(trace.Dequeue().position);
+                convertToVec3.Push(trace.Pop().position);
             }
-
-            convertToVec3 = new Queue<Vector3>(convertToVec3.Reverse());
-
-            waypoints = convertToVec3.ToArray();
+            
+            waypoints = convertToVec3.Reverse().ToArray();
             callback(new PathResultInfo(waypoints, true, requestInfo.callback));
         }
         else

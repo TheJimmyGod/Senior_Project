@@ -48,19 +48,22 @@ public class UI : MonoBehaviour
     public GameObject initialText;
     public GameObject position;
     public GameObject position2;
+  
+    public GameObject[] _Threads;
+    public GameObject _ThreadGroup;
 
     private static EventWaitHandle _childThread = new EventWaitHandle(false, EventResetMode.AutoReset);
     private static Thread _thread;
 
-    public float _approximateTime = 0.0f;
     private float[] _averages;
     private string[] _times;
 
     public GameObject _performence;
     private Queue<UI_Info> _queueLock;
     private ConcurrentDictionary<int, UI_Element?> _sortedList;
-    [Range(3,5)]
-    public int _limitRound = 3;
+    
+    public int _limitRound = 0;
+
     [SerializeField]
     private bool Active = false;
     private volatile int _round = 0;
@@ -72,16 +75,50 @@ public class UI : MonoBehaviour
 
     private void Start()
     {
-        if (AI.Instance.EnemyCountForSpawning >= 3)
-            Active = false;
         if (Active == false)
             return;
-        _queueLock = new Queue<UI_Info>(_limitRound);
-        _units = (uint)AI.Instance.EnemyCountForSpawning * 2;
+        _Threads = new GameObject[AI.Instance.ThreadVaild];
+
+        switch (AI.Instance.ThreadVaild)
+        {
+            case 1:
+                _Threads[0] = _ThreadGroup.transform.Find("Thread1").gameObject;
+                Destroy(_ThreadGroup.transform.Find("Thread2").gameObject);
+                Destroy(_ThreadGroup.transform.Find("Thread3").gameObject);
+                Destroy(_ThreadGroup.transform.Find("Thread4").gameObject);
+                break;
+            case 2:
+                _Threads[0] = _ThreadGroup.transform.Find("Thread1").gameObject;
+                _Threads[1] = _ThreadGroup.transform.Find("Thread2").gameObject;
+                Destroy(_ThreadGroup.transform.Find("Thread3").gameObject);
+                Destroy(_ThreadGroup.transform.Find("Thread4").gameObject);
+                break;
+            case 3:
+                _Threads[0] = _ThreadGroup.transform.Find("Thread1").gameObject;
+                _Threads[1] = _ThreadGroup.transform.Find("Thread2").gameObject;
+                _Threads[2] = _ThreadGroup.transform.Find("Thread3").gameObject;
+                Destroy(_ThreadGroup.transform.Find("Thread4").gameObject);
+                break;
+            case 4:
+                _Threads[0] = _ThreadGroup.transform.Find("Thread1").gameObject;
+                _Threads[1] = _ThreadGroup.transform.Find("Thread2").gameObject;
+                _Threads[2] = _ThreadGroup.transform.Find("Thread3").gameObject;
+                _Threads[3] = _ThreadGroup.transform.Find("Thread4").gameObject;
+                break;
+            default:
+                break;
+        }
+
+        if (AI.Instance.EnemyCountForSpawning >= 5)
+        {
+            Active = false;
+            return;
+        }
+
+        _units = (uint)AI.Instance.EnemyCountForSpawning;
         _sortedList = new ConcurrentDictionary<int, UI_Element?>();
         _averages = new float[_units];
         _times = new string[_units];
-
         _Texts = new GameObject[_units];
         _TextsForDate = new GameObject[_units];
         _TextsForID = new GameObject[_units];
@@ -89,7 +126,8 @@ public class UI : MonoBehaviour
 
         images = new GameObject[_units];
 
-        _limitRound = _limitRound * AI.Instance.ThreadVaild * (int)_units;
+        _limitRound = AI.Instance.ThreadVaild * (int)_units;
+        _queueLock = new Queue<UI_Info>(_limitRound);
 
         position.transform.localPosition = new Vector3(position.transform.localPosition.x + 400, position.transform.localPosition.y + 600.0f);
         position2.transform.localPosition = new Vector3(position2.transform.localPosition.x + 550, position2.transform.localPosition.y + 600.0f);
@@ -136,12 +174,12 @@ public class UI : MonoBehaviour
     {
         if(AI.Instance.pathFindOptions == PathFindOptions.AStar)
         {
-            _performence.GetComponent<Text>().text = "PathFind Search: " + "A*" + "\n" + "Approximate Time: " + _approximateTime + " m/s" + "\n"
+            _performence.GetComponent<Text>().text = "PathFind Search: " + "A*" + "\n"
 + "Round(Current/Total): (" + _round + "/" + _limitRound + ")" + "\n" + "Thread vaild values: " + AI.Instance.ThreadVaild;
         }
         else
         {
-            _performence.GetComponent<Text>().text = "PathFind Search: " + "DFS" + "\n" + "Approximate Time: " + _approximateTime + " m/s" + "\n"
+            _performence.GetComponent<Text>().text = "PathFind Search: " + "DFS" + "\n"
 + "Round(Current/Total): (" + _round + "/" + _limitRound + ")" + "\n" + "Thread vaild values: " + AI.Instance.ThreadVaild;
         }
 
@@ -207,6 +245,11 @@ public class UI : MonoBehaviour
             _TextsForID[i].GetComponent<Text>().text = "?";
             _TextsForTypeName[i].GetComponent<Text>().text = "?";
         }
+    }
+
+    public void UpdateExecuteTime(float t, int number)
+    {
+        _Threads[number].GetComponent<Text>().text = "Thread ID: " + number + "\n" + "Approximate time: " + t + "ms";
     }
 
     public void UpdateStatus()

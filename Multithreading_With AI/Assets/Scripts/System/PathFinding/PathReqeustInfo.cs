@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct PathReqeustInfo
+public class PathReqeustInfo
 {
     public uint id;
     public Vector3 start;

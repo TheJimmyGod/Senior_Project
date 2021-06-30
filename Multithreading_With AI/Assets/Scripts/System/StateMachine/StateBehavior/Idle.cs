@@ -9,13 +9,13 @@ public class Idle : State
     {
         var EnemyAgent = agent.GetComponent<Enemy>();
         EnemyAgent.currentState = EnemyAgent.stateMachine.GetCurrentState();
-        //Debug.Log("Name: " + agent.name + " <color=blue>has been entered state</color>: " + EnemyAgent.currentState);
         Timer = 0.0f;
         float random = Random.Range(0.0f, 180.0f);
         EnemyAgent.gameObject.transform.rotation = Quaternion.Euler(0.0f, random, 0.0f);
         EnemyAgent._rigidbody.velocity = Vector3.zero;
 
         EnemyAgent.ChangeIndicator();
+        EnemyAgent.FinalizePathFinding();
     }
 
     public override void Execute(GameObject agent)

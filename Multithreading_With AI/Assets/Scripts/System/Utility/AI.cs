@@ -36,7 +36,7 @@ public class AI : MonoBehaviour
     [SerializeField]
     private AStarHeuristics _AStarHeuristics = AStarHeuristics.Manhattan;
 
-    [Range(1,200)]
+    [Range(1,25)]
     public int EnemyCountForSpawning = 1;
 
     [Range(1, 4)]
@@ -120,25 +120,25 @@ public class AI : MonoBehaviour
         }
 
         // Task team
-        for (int i = 0; i < EnemyCountForSpawning; i++)
-        {
-            bool accept = false;
-            Vector3 pos = new Vector3(Random.Range(-Grid.Instance.gridSizeX + 2, Grid.Instance.gridSizeX - 2), 0.0f, Random.Range(-Grid.Instance.gridSizeY + 2, Grid.Instance.gridSizeY - 2));
-            while (accept == false)
-            {
-                pos = new Vector3(Random.Range(-Grid.Instance.gridSizeX + 2, Grid.Instance.gridSizeX - 2), 0.0f, Random.Range(-Grid.Instance.gridSizeY + 2, Grid.Instance.gridSizeY - 2));
-                if (Grid.Instance.GetNodeFromWorld(pos) == Grid.Instance.GetNodeFromWorld(_setting.End))
-                    accept = false;
-                else if (Grid.Instance.GetNodeFromWorld(pos).walkable != TileType.UnWalkable)
-                    accept = true;
-            }
-            GameObject e2 = GameObject.Instantiate(enemy, new Vector3(pos.x, 1.0f, pos.z), Quaternion.identity);
-            e2.GetComponent<Enemy>().type = ThreadingType.Task;
-            e2.gameObject.name = "Enemy" + index;
-            e2.GetComponent<Enemy>().id = index;
-            enemies.Add(e2.GetComponent<Enemy>());
-            index++;
-        }
+        //for (int i = 0; i < EnemyCountForSpawning; i++)
+        //{
+        //    bool accept = false;
+        //    Vector3 pos = new Vector3(Random.Range(-Grid.Instance.gridSizeX + 2, Grid.Instance.gridSizeX - 2), 0.0f, Random.Range(-Grid.Instance.gridSizeY + 2, Grid.Instance.gridSizeY - 2));
+        //    while (accept == false)
+        //    {
+        //        pos = new Vector3(Random.Range(-Grid.Instance.gridSizeX + 2, Grid.Instance.gridSizeX - 2), 0.0f, Random.Range(-Grid.Instance.gridSizeY + 2, Grid.Instance.gridSizeY - 2));
+        //        if (Grid.Instance.GetNodeFromWorld(pos) == Grid.Instance.GetNodeFromWorld(_setting.End))
+        //            accept = false;
+        //        else if (Grid.Instance.GetNodeFromWorld(pos).walkable != TileType.UnWalkable)
+        //            accept = true;
+        //    }
+        //    GameObject e2 = GameObject.Instantiate(enemy, new Vector3(pos.x, 1.0f, pos.z), Quaternion.identity);
+        //    e2.GetComponent<Enemy>().type = ThreadingType.Task;
+        //    e2.gameObject.name = "Enemy" + index;
+        //    e2.GetComponent<Enemy>().id = index;
+        //    enemies.Add(e2.GetComponent<Enemy>());
+        //    index++;
+        //}
 
         GameObject.Instantiate(player, new Vector3(_setting.End.x + 0.1f,
     1.0f, _setting.End.z + 0.1f), Quaternion.identity);

@@ -19,7 +19,6 @@ public class Enemy : MonoBehaviour
     public Rigidbody _rigidbody;
     public bool _isStart = false;
     public bool _isFound = false;
-    public bool _isSearching = false;
 
     public Vector3[] path;
     public Vector3 current;
@@ -109,6 +108,7 @@ public class Enemy : MonoBehaviour
                 lr.SetPosition(0, new Vector3(_pathes[i].x, 0.5f, _pathes[i].z));
                 lr.SetPosition(1, new Vector3(_pathes[i+1].x, 0.5f, _pathes[i+1].z));
             }
+            stateMachine.ChangeState("Move");
         }
     }
 
@@ -119,7 +119,6 @@ public class Enemy : MonoBehaviour
         stateMachine.ActivateState();
         if(indicator != null)
             indicator.transform.rotation = Quaternion.LookRotation(-Camera.main.transform.forward, Camera.main.transform.up);
-
     }
 
     public void ChangeIndicator()

@@ -23,26 +23,16 @@ public class PathTask
     private Task _task;
 
     public volatile bool _isRun = false;
-    private bool _isStarted = false;
-    public PathTask(object info, int num)
-    {
-        this._taskID = num;
-        if(info is PathReqeustInfo)
-            this._info = (PathReqeustInfo)info;
-    }
+    private volatile bool _isStarted = false;
 
-    public void ResetTask(object info)
-    {
-        _info.ResetContents();
-        _stopWatch.Reset();
-        if(info is PathReqeustInfo)
-            _info = (PathReqeustInfo)info;
-    }
-    public void RunTask()
+    public void CreateTask(object info, int num)
     {
         if (!_isRun)
         {
             _isRun = true;
+            this._taskID = num;
+            if (info is PathReqeustInfo)
+                this._info = (PathReqeustInfo)info;
             ExecuteTask(_taskID);
             if (_isStarted == false)
             {
@@ -57,11 +47,8 @@ public class PathTask
     {
         _stopWatchForApproximate.Reset();
         _stopWatchForApproximate.Start();
-        if((_totalTime / 1000.0f) != 0.0f)
-        {
-            if(UI.Instance._approximateTime < _totalTime / 1000.0f)
-                UI.Instance._approximateTime = _totalTime / 1000.0f;
-        }
+        if ((_totalTime / 1000.0f) != 0.0f)
+            UI.Instance.UpdateExecuteTime(_totalTime / 1000.0f,_taskID);
         _totalTime = 0;
     }
 
@@ -77,41 +64,34 @@ public class PathTask
 
         _stopWatch.Start();
         var tasks = new List<Task>();
-        try
+        if (AI.Instance.pathFindOptions == PathFindOptions.DFS)
         {
-            if (AI.Instance.pathFindOptions == PathFindOptions.DFS)
+            // DFS
+            _task = Task.Run(async () =>
             {
-                // DFS
-                _task = Task.Run(async () => 
-                {
-                    AI.Instance.ExecutePathFindingDFS(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue);
-                    await Task.Delay(AI.Instance.sleepTime);
-                });
-                tasks.Add(_task);
-            }
-            if (AI.Instance.pathFindOptions == PathFindOptions.AStar)
-            {
-                // AStar
-                _task = Task.Run(async () =>
-                {
-                    AI.Instance.ExecutePathFindingAStar(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue);
-                    await Task.Delay(AI.Instance.sleepTime);
-                }
-                );
-                tasks.Add(_task);
-            }
-            Task.WaitAll(tasks.ToArray());
+                AI.Instance.ExecutePathFindingDFS(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue);
+                await Task.Delay(AI.Instance.sleepTime);
+            });
+            tasks.Add(_task);
         }
-        catch (Exception ex)
+        if (AI.Instance.pathFindOptions == PathFindOptions.AStar)
         {
-            Debug.Log("Error in Task: " + ex.ToString());
-            throw;
+            // AStar
+            _task = Task.Run(async () =>
+            {
+                AI.Instance.ExecutePathFindingAStar(_info, PathTaskManager.Instance.FinalizedProcessingEnqueue);
+                await Task.Delay(AI.Instance.sleepTime);
+            }
+            );
+            tasks.Add(_task);
         }
+        Task.WaitAll(tasks.ToArray());
         _stopWatch.Stop();
         _latestTime = _stopWatch.ElapsedMilliseconds;
         _totalTime += _latestTime;
         _stopWatch.Reset();
         UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, (float)_latestTime * 0.001f, ThreadingType.Task));
         _isRun = false;
+        Task.WaitAll(tasks.ToArray());
     }
 }

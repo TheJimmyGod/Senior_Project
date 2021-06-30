@@ -21,11 +21,26 @@ public class PathThreadManager : MonoBehaviour
 
     private Queue<object> QueueLock;
     private PathThread[] _threads;
+    private volatile int _counter = 0;
     
     private void Start()
     {
         QueueLock = new Queue<object>();
         _threads = new PathThread[AI.Instance.ThreadVaild];
+
+        for (int counter = 0; counter < Instance._threads.Length; ++counter)
+        {
+            Instance._threads[counter] = new PathThread();
+
+            if (Instance._threads[counter]._thread == null)
+            {
+                Instance._threads[counter].CreateThread();
+            }
+            if (Instance._threads[counter]._isRun == false)
+            {
+                Instance._threads[counter].RunThread();
+            }
+        }
     }
 
     private void Update()
@@ -39,14 +54,19 @@ public class PathThreadManager : MonoBehaviour
             {
                 System.Threading.Monitor.Enter(QueueLock, ref isEntered);
                 int count = QueueLock.Count;
-                for (int i = 0; i < count; ++i)
+                int maximum = int.MaxValue;
+                if(count < maximum)
                 {
-                    if (QueueLock.Peek() is PathResultInfo)
+                    for (int i = 0; i < count; ++i)
                     {
-                        PathResultInfo result = (PathResultInfo)QueueLock.Dequeue();
-                        result.callback(result.waypoints, result.IsSuccess);
+                        if (QueueLock.Peek() is PathResultInfo)
+                        {
+                            PathResultInfo result = (PathResultInfo)QueueLock.Dequeue();
+                            result.callback(result.waypoints, result.IsSuccess);
+                        }
                     }
                 }
+
             }
             catch (SynchronizationLockException ex)
             {
@@ -97,14 +117,20 @@ public class PathThreadManager : MonoBehaviour
     {
         if(info is PathReqeustInfo)
         {
-            for (int counter = 0; counter < Instance._threads.Length; ++counter)
+            while(true)
             {
-                if (Instance._threads[counter] == null)
-                    Instance._threads[counter] = new PathThread(info, counter);
+                if (Instance._counter >= Instance._threads.Length)
+                    Instance._counter = 0;
+                if(Instance._threads[_instance._counter]._info == null)
+                {
+                    Instance._threads[Instance._counter].EnqueueItem(info, Instance._counter);
+                    Instance._counter++;
+                    break;
+                }
                 else
-                    Instance._threads[counter].ResetThread(info);
-                Instance._threads[counter].CreateThread();
+                    Instance._counter++;
             }
+
         }
     }
 }

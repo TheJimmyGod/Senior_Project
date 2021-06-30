@@ -25,6 +25,11 @@ public class PathTaskManager : MonoBehaviour
     {
         QueueLock = new Queue<object>();
         _tasks = new PathTask[AI.Instance.ThreadVaild];
+
+        for (int counter = 0; counter < Instance._tasks.Length; ++counter)
+        {
+            Instance._tasks[counter] = new PathTask();
+        }
     }
 
     private void Update()
@@ -78,7 +83,6 @@ public class PathTaskManager : MonoBehaviour
         }
         finally
         {
-            //Debug.Log("<color=green>Exiting from the request... </color>");
             System.Threading.Monitor.Exit(QueueLock);
         }
     }
@@ -100,16 +104,19 @@ public class PathTaskManager : MonoBehaviour
     {
         if (info is PathReqeustInfo)
         {
-            for (int counter = 0; counter < Instance._tasks.Length; ++counter)
+            int counter = 0;
+            while (true)
             {
-                if (Instance._tasks[counter] == null)
-                    Instance._tasks[counter] = new PathTask(info, counter);
-                else
-                    Instance._tasks[counter].ResetTask(info);
-                Instance._tasks[counter].RunTask();
+                if (Instance._tasks[counter]._isRun == false)
+                {
+                    Instance._tasks[counter].CreateTask(info, counter);
+                    break;
+                }
+                counter++;
+                if (counter == Instance._tasks.Length)
+                    counter = 0;
+                Thread.Sleep(AI.Instance.sleepTime);
             }
         }
-
-        //Debug.Log("<color=green>Task has been create for request... </color>");
     }
 }

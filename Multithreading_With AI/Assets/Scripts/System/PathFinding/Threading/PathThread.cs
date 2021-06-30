@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 
 public class PathThread
 {
-    private PathReqeustInfo _info;
+    public PathReqeustInfo _info = null;
     private int _threadID = 0;
     public int ThreadID
     {
@@ -16,50 +16,42 @@ public class PathThread
     }
     private Stopwatch _stopWatch = new Stopwatch();
     public Stopwatch _stopWatchForApproximate = new Stopwatch();
-    private Thread _thread;
+    public Thread _thread;
+    public Queue<PathReqeustInfo> pending = new Queue<PathReqeustInfo>();
+
     private long _latestTime;
     private long _totalTime;
     public volatile bool _isRun = false;
-    private bool _isStarted = false;
-    public PathThread(object info, int num)
-    {
-        this._threadID = num;
-        if(info is PathReqeustInfo)
-            this._info = (PathReqeustInfo)info;
-    }
-
-    public void ResetThread(object info)
-    {
-        _info.ResetContents();
-
-        if (info is PathReqeustInfo)
-            _info = (PathReqeustInfo)info;
-    }
+    private volatile bool _isStarted = false;
 
     public void CreateThread()
     {
         // ParameterizedThreadStart = Parameter is required
         // ThreadStart = All okay
         _thread = new Thread(new ParameterizedThreadStart(ExecuteThread));
-        //_thread.IsBackground = true;
-        RunThread();
     }
 
     public void RunThread()
     {
-        if (!_isRun)
+        _isRun = true;
+        _thread.Start(_threadID);
+        if (_isStarted == false)
         {
-            _isRun = true;
-            _thread.Start(_threadID);
-            _thread.Join();
-            if (_isStarted == false)
-            {
-                _isStarted = true;
-                _stopWatchForApproximate.Start();
-            }
+            _isStarted = true;
+            _stopWatchForApproximate.Start();
         }
-        else
-            return;
+    }
+
+    public void EnqueueItem(object info, int num)
+    {
+        this._threadID = num;
+        lock (pending)
+        {
+            _info = (PathReqeustInfo)info;
+            pending.Enqueue(_info);
+        }
+
+
     }
 
     public void TimeCheckOut()
@@ -67,39 +59,60 @@ public class PathThread
         _stopWatchForApproximate.Reset();
         _stopWatchForApproximate.Start();
         if ((_totalTime / 1000.0f) != 0.0f)
-            UI.Instance._approximateTime = _totalTime / 1000.0f;
+            UI.Instance.UpdateExecuteTime(_totalTime / 1000.0f, _threadID);
         _totalTime = 0;
     }
 
     public void ExecuteThread(object id = null)
     {
-        if (_isRun == false)
-            return;
-        try
+        while(_isRun)
         {
-            _stopWatch.Start();
-            if (AI.Instance.pathFindOptions == PathFindOptions.DFS)
-            {
-                // DFS
-                AI.Instance.ExecutePathFindingDFS(_info, PathThreadManager.Instance.FinalizedProcessingEnqueue);
+            if(pending.Count == 0)
                 Thread.Sleep(AI.Instance.sleepTime);
-            }
-            else if (AI.Instance.pathFindOptions == PathFindOptions.AStar)
+            else
             {
-                // AStar
-                AI.Instance.ExecutePathFindingAStar(_info, PathThreadManager.Instance.FinalizedProcessingEnqueue);
-                Thread.Sleep(AI.Instance.sleepTime);
+                try
+                {
+                    PathReqeustInfo item;
+                    lock(pending)
+                    {
+                        item = pending.Dequeue();
+                    }
+                    if (item == null)
+                        continue;
+                    
+                    _stopWatch.Start();
+                    if (AI.Instance.pathFindOptions == PathFindOptions.DFS)
+                    {
+                        // DFS
+                        AI.Instance.ExecutePathFindingDFS(item, PathThreadManager.Instance.FinalizedProcessingEnqueue);
+                    }
+                    else if (AI.Instance.pathFindOptions == PathFindOptions.AStar)
+                    {
+                        // AStar
+                        AI.Instance.ExecutePathFindingAStar(item, PathThreadManager.Instance.FinalizedProcessingEnqueue);
+                    }
+                    _stopWatch.Stop();
+                    _latestTime = _stopWatch.ElapsedMilliseconds;
+                    _totalTime += _latestTime;
+                    _stopWatch.Reset();
+                    UI.Instance.EnqueueStatusInfo(new UI_Info(item.id, (float)_latestTime * 0.001f, ThreadingType.Thread));
+                    _info = null;
+                }
+                catch(SynchronizationLockException ex)
+                {
+                    Debug.Log(ex.Data.ToString());
+                    break;
+                }
+
             }
+
         }
-        catch (Exception ex)
-        {
-            Debug.Log("Thread error: " + ex);
-        }
-        _stopWatch.Stop();
-        _latestTime = _stopWatch.ElapsedMilliseconds;
-        _totalTime += _latestTime;
-        _stopWatch.Reset();
-        UI.Instance.EnqueueStatusInfo(new UI_Info(_info.id, (float)_latestTime * 0.001f, ThreadingType.Thread));
+  
+    }
+
+    public void StopThread()
+    {
         _isRun = false;
     }
 }

@@ -10,11 +10,11 @@ public class Find : State
 
     bool changeSide = false;
     bool random = false;
+    object box = null;
     public override void Enter(GameObject agent)
     {
         var EnemyAgent = agent.GetComponent<Enemy>();
         EnemyAgent.currentState = EnemyAgent.stateMachine.GetCurrentState();
-        //Debug.Log("Name: " + agent.name + " <color=blue>has been entered state</color>: " + EnemyAgent.currentState);
 
         EnemyAgent.ChangeIndicator();
         totalTimer = 0.0f;
@@ -33,9 +33,32 @@ public class Find : State
         var EnemyAgent = agent.GetComponent<Enemy>();
         var PlayerUnit = GameObject.FindGameObjectWithTag("Player").gameObject;
         bool found = false;
-        if (totalTimer > 7.0f)
+        if (totalTimer > 3.0f)
         {
-            EnemyAgent.stateMachine.ChangeState("Move");
+            bool accept = false;
+            Vector3 pos = new Vector3(Random.Range(-Grid.Instance.gridSizeX, Grid.Instance.gridSizeX), 0.0f, Random.Range(-Grid.Instance.gridSizeY, Grid.Instance.gridSizeY));
+            while (accept == false)
+            {
+                pos = new Vector3(Random.Range(-Grid.Instance.gridSizeX, Grid.Instance.gridSizeX), 0.0f, Random.Range(-Grid.Instance.gridSizeY, Grid.Instance.gridSizeY));
+                if (Grid.Instance.GetNodeFromWorld(pos) == Grid.Instance.GetNodeFromWorld(EnemyAgent.transform.position))
+                {
+                    accept = false;
+                    continue;
+                }
+                if (Grid.Instance.GetNodeFromWorld(pos).walkable == TileType.Walkable)
+                {
+                    accept = true;
+                    break;
+                }
+            }
+
+            box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, pos, EnemyAgent.PathFound);
+            if (EnemyAgent.type == ThreadingType.Thread)
+                PathThreadManager.RequestInfo(box);
+            else if (EnemyAgent.type == ThreadingType.Task)
+                PathTaskManager.RequestInfo(box);
+
+            
             totalTimer = 0.0f;
         }
         else
@@ -46,8 +69,16 @@ public class Find : State
                 if (found)
                 {
                     EnemyAgent._isFound = true;
+
+                    Node playerPos = Grid.Instance.GetNodeFromWorld(PlayerUnit.transform.position);
+                    EnemyAgent.transform.LookAt(PlayerUnit.transform);
+                    box = new PathReqeustInfo(EnemyAgent.id, EnemyAgent.transform.position, playerPos.position, EnemyAgent.PathFound); // main loop
+                    if (EnemyAgent.type == ThreadingType.Thread)
+                        PathThreadManager.RequestInfo(box);
+                    else if (EnemyAgent.type == ThreadingType.Task)
+                        PathTaskManager.RequestInfo(box);
+
                     EnemyAgent.gameObject.transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
-                    EnemyAgent.stateMachine.ChangeState("Move");
                 }
                 timer = 0.0f;
             }
@@ -57,17 +88,13 @@ public class Find : State
             totalTimer += Time.deltaTime;
         }
         if(random)
-        {
             EnemyAgent.gameObject.transform.Rotate(0.0f, Mathf.Cos(Time.deltaTime) / 4.0f * EnemyAgent._speed * MoveTimer, 0.0f);
-        }
         else
-        {
             EnemyAgent.gameObject.transform.Rotate(0.0f, Mathf.Cos(Time.deltaTime) / 4.0f * -EnemyAgent._speed * MoveTimer, 0.0f);
-        }
 
-        if (MoveTimer >= 2.0f)
+        if (MoveTimer >= 1.0f)
             changeSide = true;
-        if (MoveTimer <= -2.0f)
+        if (MoveTimer <= -1.0f)
             changeSide = false;
         if (!changeSide)
             MoveTimer += Time.deltaTime;

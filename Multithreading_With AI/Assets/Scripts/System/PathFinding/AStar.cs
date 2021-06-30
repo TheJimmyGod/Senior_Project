@@ -21,8 +21,7 @@ public class AStar : MonoBehaviour, PathFindInterface
 
         if (EndNode.walkable == TileType.UnWalkable)
         {
-            Debug.Log("<color=red>Warning!</color>" + " " + "EndNode is unwalkable!");
-            callback(new PathResultInfo(waypoints, false, requestInfo.callback));
+            callback(new PathResultInfo(null, false, requestInfo.callback));
             return;
         }
 
@@ -89,15 +88,18 @@ public class AStar : MonoBehaviour, PathFindInterface
 
         }
 
-        Queue<Node> trace = new Queue<Node>();
-
         if (found)
         {
+            Queue<Node> trace = new Queue<Node>();
             Node node = EndNode;
             while (node != StartNode)
             {
-                trace.Enqueue(node);
-                node = node.parent;
+                if(!trace.Contains(node))
+                    trace.Enqueue(node);
+                if (node.parent != null)
+                    node = node.parent;
+                else
+                    break;
             }
             Queue<Vector3> convertToVec3 = new Queue<Vector3>();
 
@@ -109,12 +111,13 @@ public class AStar : MonoBehaviour, PathFindInterface
             convertToVec3 = new Queue<Vector3>(convertToVec3.Reverse());
 
             waypoints = convertToVec3.ToArray();
+            callback(new PathResultInfo(waypoints, true, requestInfo.callback));
         }
         else
         {
-            callback(new PathResultInfo(waypoints, false, requestInfo.callback));
+            callback(new PathResultInfo(null, false, null));
+            return;
         }
-        callback(new PathResultInfo(waypoints, true, requestInfo.callback));
     }
 
     private float ComputeCost(Node a, Node b)
